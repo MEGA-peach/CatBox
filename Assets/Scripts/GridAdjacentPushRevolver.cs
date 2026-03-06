@@ -20,6 +20,22 @@ public class GridAdjacentPushResolver : MonoBehaviour
 
     public bool TryResolvePushFromCell(Vector3Int sourceCell)
     {
+        if (!TryGetAdjacentPushable(sourceCell, out CardinalPushable pushable, out _, out _))
+            return false;
+
+        return pushable.TryPushFromSourceCell(sourceCell);
+    }
+
+    public bool TryGetAdjacentPushable(
+        Vector3Int sourceCell,
+        out CardinalPushable pushable,
+        out Vector3Int directionFromSourceToPushable,
+        out Transform pushableTransform)
+    {
+        pushable = null;
+        directionFromSourceToPushable = Vector3Int.zero;
+        pushableTransform = null;
+
         if (grid == null)
             return false;
 
@@ -37,11 +53,13 @@ public class GridAdjacentPushResolver : MonoBehaviour
             {
                 if (hit == null) continue;
 
-                CardinalPushable pushable = hit.GetComponentInParent<CardinalPushable>();
-                if (pushable == null) continue;
+                CardinalPushable foundPushable = hit.GetComponentInParent<CardinalPushable>();
+                if (foundPushable == null) continue;
 
-                if (pushable.TryPushFromSourceCell(sourceCell))
-                    return true;
+                pushable = foundPushable;
+                directionFromSourceToPushable = dir;
+                pushableTransform = foundPushable.transform;
+                return true;
             }
         }
 

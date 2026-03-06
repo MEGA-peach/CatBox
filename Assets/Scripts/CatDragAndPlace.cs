@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
@@ -10,10 +11,17 @@ public class CatDragAndPlace : MonoBehaviour
     [SerializeField] private GridPlacementPreview preview;
     [SerializeField] private PlacementFeedback placementFeedback;
     [SerializeField] private GridAdjacentPushResolver pushResolver;
+    [SerializeField] private CatAnimatorDriver catAnimator;
+
+    [Header("Push Timing")]
+    [SerializeField] private float preHitDelay = 0.06f;
+    [SerializeField] private float hitImpactDelay = 0.10f;
 
     private bool dragging;
+    private bool actionLocked;
     private Vector3 dragOffset;
     private Vector3Int startCell;
+    private Coroutine actionRoutine;
 
     private void Awake()
     {
@@ -25,11 +33,18 @@ public class CatDragAndPlace : MonoBehaviour
 
         if (placementFeedback == null)
             placementFeedback = GetComponent<PlacementFeedback>();
+
+        if (catAnimator == null)
+            catAnimator = GetComponent<CatAnimatorDriver>();
     }
 
     private void OnMouseDown()
     {
+        if (actionLocked)
+            return;
+
         dragging = true;
+        catAnimator?.SetDragged(true);
 
         if (snapper != null)
         {
@@ -49,7 +64,8 @@ public class CatDragAndPlace : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (!dragging) return;
+        if (!dragging || actionLocked)
+            return;
 
         Vector3 mouseWorld = GetMouseWorld();
         Vector3 intendedPosition = mouseWorld + dragOffset;
@@ -62,7 +78,11 @@ public class CatDragAndPlace : MonoBehaviour
 
     private void OnMouseUp()
     {
+        if (actionLocked)
+            return;
+
         dragging = false;
+        catAnimator?.SetDragged(false);
 
         if (snapper != null)
             snapper.SetSnappingEnabled(true);
@@ -93,20 +113,71 @@ public class CatDragAndPlace : MonoBehaviour
         }
 
         if (landedThisDrop)
-        {
             placementFeedback?.PlayPlacementFeedback();
-        }
 
         if (placedOnValidCell && grid != null && pushResolver != null)
         {
             Vector3Int catCell = grid.WorldToCell(transform.position);
-            pushResolver.TryResolvePushFromCell(catCell);
+
+            bool foundPushable = pushResolver.TryGetAdjacentPushable(
+                catCell,
+                out CardinalPushable pushable,
+                out Vector3Int directionToPushable,
+                out Transform pushableTransform
+            );
+
+            if (foundPushable)
+            {
+                catAnimator?.FaceDirection(directionToPushable);
+
+                if (actionRoutine != null)
+                    StopCoroutine(actionRoutine);
+
+                actionRoutine = StartCoroutine(PlayPushSequence(catCell, pushable));
+            }
+            else
+            {
+                catAnimator?.FaceDefault();
+            }
         }
+        else
+        {
+            catAnimator?.FaceDefault();
+        }
+    }
+
+    private IEnumerator PlayPushSequence(Vector3Int catCell, CardinalPushable pushable)
+    {
+        actionLocked = true;
+
+        if (preHitDelay > 0f)
+            yield return new WaitForSeconds(preHitDelay);
+
+        catAnimator?.PlayHit();
+
+        if (hitImpactDelay > 0f)
+            yield return new WaitForSeconds(hitImpactDelay);
+
+        if (pushable != null)
+            pushable.TryPushFromSourceCell(catCell);
+
+        actionLocked = false;
+        actionRoutine = null;
     }
 
     private void GetOutOfDragState()
     {
         dragging = false;
+        actionLocked = false;
+
+        catAnimator?.SetDragged(false);
+        catAnimator?.FaceDefault();
+
+        if (actionRoutine != null)
+        {
+            StopCoroutine(actionRoutine);
+            actionRoutine = null;
+        }
 
         if (preview != null)
             preview.Hide();

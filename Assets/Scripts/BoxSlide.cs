@@ -8,10 +8,28 @@ public class BoxSlide : MonoBehaviour
     [SerializeField] private GridSnapper snapper;
 
     [Header("Slide Settings")]
-    [SerializeField] private float slideDuration = 0.15f;
+    [Tooltip("Seconds per world unit moved.")]
+    [SerializeField] private float secondsPerUnit = 0.08f;
+
     [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-    private Coroutine slideRoutine;
+    [Tooltip("Prevents extremely short or extremely long slide times.")]
+    [SerializeField] private Vector2 durationClamp = new Vector2(0.08f, 0.5f);
+
+    [Header("Landing Overshoot")]
+    [SerializeField] private bool useOvershoot = true;
+    [SerializeField] private float overshootDistance = 0.08f;
+    [SerializeField] private float overshootReturnDuration = 0.05f;
+    [SerializeField] private AnimationCurve overshootReturnCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    [Header("Blocked Bump")]
+    [SerializeField] private float blockedBumpDistance = 0.08f;
+    [SerializeField] private float blockedBumpOutDuration = 0.04f;
+    [SerializeField] private float blockedBumpReturnDuration = 0.06f;
+    [SerializeField] private AnimationCurve blockedBumpOutCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    [SerializeField] private AnimationCurve blockedBumpReturnCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    private Coroutine moveRoutine;
     private bool isSliding;
 
     public bool IsSliding => isSliding;
@@ -27,16 +45,28 @@ public class BoxSlide : MonoBehaviour
         if (isSliding)
             return false;
 
-        slideRoutine = StartCoroutine(SlideRoutine(targetWorld));
+        moveRoutine = StartCoroutine(SlideRoutine(targetWorld));
         return true;
     }
 
-    public void StopSlideAndSnap()
+    public bool PlayBlockedBump(Vector3 worldDirection)
     {
-        if (slideRoutine != null)
+        if (isSliding)
+            return false;
+
+        if (worldDirection.sqrMagnitude <= 0.000001f)
+            return false;
+
+        moveRoutine = StartCoroutine(BlockedBumpRoutine(worldDirection.normalized));
+        return true;
+    }
+
+    public void StopAndSnap()
+    {
+        if (moveRoutine != null)
         {
-            StopCoroutine(slideRoutine);
-            slideRoutine = null;
+            StopCoroutine(moveRoutine);
+            moveRoutine = null;
         }
 
         isSliding = false;
@@ -56,17 +86,52 @@ public class BoxSlide : MonoBehaviour
             snapper.SetSnappingEnabled(false);
 
         Vector3 startWorld = transform.position;
-        float duration = Mathf.Max(0.0001f, slideDuration);
+        Vector3 slideDelta = targetWorld - startWorld;
+
+        float distance = slideDelta.magnitude;
+        float mainDuration = Mathf.Clamp(
+            distance * secondsPerUnit,
+            durationClamp.x,
+            durationClamp.y
+        );
+
+        Vector3 overshootTarget = targetWorld;
+
+        if (useOvershoot && distance > 0.0001f)
+        {
+            Vector3 direction = slideDelta.normalized;
+            overshootTarget = targetWorld + direction * overshootDistance;
+        }
+
         float elapsed = 0f;
 
-        while (elapsed < duration)
+        while (elapsed < mainDuration)
         {
             elapsed += Time.deltaTime;
-            float normalizedTime = Mathf.Clamp01(elapsed / duration);
+            float normalizedTime = Mathf.Clamp01(elapsed / mainDuration);
             float curvedTime = slideCurve.Evaluate(normalizedTime);
 
-            transform.position = Vector3.LerpUnclamped(startWorld, targetWorld, curvedTime);
+            transform.position = Vector3.LerpUnclamped(startWorld, overshootTarget, curvedTime);
             yield return null;
+        }
+
+        transform.position = overshootTarget;
+
+        if (useOvershoot && overshootTarget != targetWorld)
+        {
+            elapsed = 0f;
+            float returnDuration = Mathf.Max(0.0001f, overshootReturnDuration);
+            Vector3 overshootStart = transform.position;
+
+            while (elapsed < returnDuration)
+            {
+                elapsed += Time.deltaTime;
+                float normalizedTime = Mathf.Clamp01(elapsed / returnDuration);
+                float curvedTime = overshootReturnCurve.Evaluate(normalizedTime);
+
+                transform.position = Vector3.LerpUnclamped(overshootStart, targetWorld, curvedTime);
+                yield return null;
+            }
         }
 
         transform.position = targetWorld;
@@ -78,6 +143,56 @@ public class BoxSlide : MonoBehaviour
         }
 
         isSliding = false;
-        slideRoutine = null;
+        moveRoutine = null;
+    }
+
+    private IEnumerator BlockedBumpRoutine(Vector3 worldDirection)
+    {
+        isSliding = true;
+
+        if (snapper != null)
+            snapper.SetSnappingEnabled(false);
+
+        Vector3 startWorld = transform.position;
+        Vector3 bumpTarget = startWorld + (worldDirection * blockedBumpDistance);
+
+        float elapsed = 0f;
+        float outDuration = Mathf.Max(0.0001f, blockedBumpOutDuration);
+
+        while (elapsed < outDuration)
+        {
+            elapsed += Time.deltaTime;
+            float normalizedTime = Mathf.Clamp01(elapsed / outDuration);
+            float curvedTime = blockedBumpOutCurve.Evaluate(normalizedTime);
+
+            transform.position = Vector3.LerpUnclamped(startWorld, bumpTarget, curvedTime);
+            yield return null;
+        }
+
+        transform.position = bumpTarget;
+
+        elapsed = 0f;
+        float returnDuration = Mathf.Max(0.0001f, blockedBumpReturnDuration);
+
+        while (elapsed < returnDuration)
+        {
+            elapsed += Time.deltaTime;
+            float normalizedTime = Mathf.Clamp01(elapsed / returnDuration);
+            float curvedTime = blockedBumpReturnCurve.Evaluate(normalizedTime);
+
+            transform.position = Vector3.LerpUnclamped(bumpTarget, startWorld, curvedTime);
+            yield return null;
+        }
+
+        transform.position = startWorld;
+
+        if (snapper != null)
+        {
+            snapper.SetSnappingEnabled(true);
+            snapper.SnapNow();
+        }
+
+        isSliding = false;
+        moveRoutine = null;
     }
 }

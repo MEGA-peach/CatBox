@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7b870ad1ff26ba47acf5d111c706d79, type: 3}
   m_Name: CatGridSettings
   m_EditorClassIdentifier: 
-  anchor: 1
-  customWorldOffset: {x: 0, y: 0}
+  anchor: 2
+  customWorldOffset: {x: 0, y: -0.3}
   snapX: 1
   snapY: 1
   preserveZ: 1

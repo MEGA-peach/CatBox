@@ -29,7 +29,7 @@ public class GridSnapper : MonoBehaviour
         if (grid == null) return;
 
         Vector3 current = transform.position;
-        Vector3 snapped = GetAnchoredCellWorld(cell);
+        Vector3 snapped = GetSnappedWorldPosition(cell);
 
         if (settings != null)
         {
@@ -51,11 +51,14 @@ public class GridSnapper : MonoBehaviour
         return grid.WorldToCell(transform.position);
     }
 
-    private Vector3 GetAnchoredCellWorld(Vector3Int cell)
+    public Vector3 GetSnappedWorldPosition(Vector3Int cell)
     {
+        if (grid == null) return transform.position;
+
         Vector3 basePos = grid.GetCellCenterWorld(cell);
 
-        if (settings == null) return basePos;
+        if (settings == null)
+            return basePos;
 
         switch (settings.anchor)
         {
