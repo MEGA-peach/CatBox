@@ -1,29 +1,34 @@
-// GridSnapper.cs
 using UnityEngine;
 
 [DisallowMultipleComponent]
 public class GridSnapper : MonoBehaviour
 {
     [SerializeField] private GridSnapSettings settings;
-    [SerializeField] private Grid grid; // assign your scene Grid here
-
+    [SerializeField] private Grid grid;
     [SerializeField] private bool requireEnabledToSnap = true;
+
     private bool snappingEnabled = true;
 
-    public void SetSnappingEnabled(bool enabled) => snappingEnabled = enabled;
+    public void SetSnappingEnabled(bool enabled)
+    {
+        snappingEnabled = enabled;
+    }
 
     public void SnapNow()
     {
         if (requireEnabledToSnap && !snappingEnabled) return;
-        if (grid == null)
-        {
-            Debug.LogWarning($"[{nameof(GridSnapper)}] No Grid assigned for {name}.");
-            return;
-        }
+        if (grid == null) return;
+
+        Vector3Int cell = grid.WorldToCell(transform.position);
+        SnapToCell(cell);
+    }
+
+    public void SnapToCell(Vector3Int cell)
+    {
+        if (requireEnabledToSnap && !snappingEnabled) return;
+        if (grid == null) return;
 
         Vector3 current = transform.position;
-        Vector3Int cell = grid.WorldToCell(current);
-
         Vector3 snapped = GetAnchoredCellWorld(cell);
 
         if (settings != null)
@@ -40,32 +45,35 @@ public class GridSnapper : MonoBehaviour
         transform.position = snapped;
     }
 
+    public Vector3Int GetCurrentCell()
+    {
+        if (grid == null) return Vector3Int.zero;
+        return grid.WorldToCell(transform.position);
+    }
+
     private Vector3 GetAnchoredCellWorld(Vector3Int cell)
     {
         Vector3 basePos = grid.GetCellCenterWorld(cell);
 
         if (settings == null) return basePos;
 
-        return settings.anchor switch
+        switch (settings.anchor)
         {
-            GridSnapSettings.CellAnchor.Center => basePos,
-            GridSnapSettings.CellAnchor.BottomCenter => new Vector3(
-                basePos.x,
-                basePos.y - (grid.cellSize.y * 0.5f),
-                basePos.z
-            ),
-            GridSnapSettings.CellAnchor.Custom => basePos + (Vector3)settings.customWorldOffset,
-            _ => basePos
-        };
-    }
+            case GridSnapSettings.CellAnchor.Center:
+                return basePos;
 
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (grid == null)
-        {
-            grid = FindFirstObjectByType<Grid>();
+            case GridSnapSettings.CellAnchor.BottomCenter:
+                return new Vector3(
+                    basePos.x,
+                    basePos.y - (grid.cellSize.y * 0.5f),
+                    basePos.z
+                );
+
+            case GridSnapSettings.CellAnchor.Custom:
+                return basePos + (Vector3)settings.customWorldOffset;
+
+            default:
+                return basePos;
         }
     }
-#endif
 }

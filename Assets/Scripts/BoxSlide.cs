@@ -1,39 +1,71 @@
-// BoxSlide.cs
 using System.Collections;
 using UnityEngine;
 
+[DisallowMultipleComponent]
 public class BoxSlide : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private GridSnapper snapper;
-    [SerializeField] private float slideDuration = 0.15f;
 
-    private bool sliding;
+    [Header("Slide Settings")]
+    [SerializeField] private float slideDuration = 0.15f;
+    [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    private Coroutine slideRoutine;
+    private bool isSliding;
+
+    public bool IsSliding => isSliding;
 
     private void Awake()
     {
-        if (snapper == null) snapper = GetComponent<GridSnapper>();
+        if (snapper == null)
+            snapper = GetComponent<GridSnapper>();
     }
 
-    public bool IsSliding => sliding;
-
-    public void SlideToWorld(Vector3 targetWorld)
+    public bool SlideToWorld(Vector3 targetWorld)
     {
-        if (sliding) return;
-        StartCoroutine(SlideRoutine(targetWorld));
+        if (isSliding)
+            return false;
+
+        slideRoutine = StartCoroutine(SlideRoutine(targetWorld));
+        return true;
+    }
+
+    public void StopSlideAndSnap()
+    {
+        if (slideRoutine != null)
+        {
+            StopCoroutine(slideRoutine);
+            slideRoutine = null;
+        }
+
+        isSliding = false;
+
+        if (snapper != null)
+        {
+            snapper.SetSnappingEnabled(true);
+            snapper.SnapNow();
+        }
     }
 
     private IEnumerator SlideRoutine(Vector3 targetWorld)
     {
-        sliding = true;
-        if (snapper != null) snapper.SetSnappingEnabled(false);
+        isSliding = true;
 
-        Vector3 start = transform.position;
-        float t = 0f;
+        if (snapper != null)
+            snapper.SetSnappingEnabled(false);
 
-        while (t < 1f)
+        Vector3 startWorld = transform.position;
+        float duration = Mathf.Max(0.0001f, slideDuration);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
         {
-            t += Time.deltaTime / Mathf.Max(0.0001f, slideDuration);
-            transform.position = Vector3.Lerp(start, targetWorld, Mathf.SmoothStep(0f, 1f, t));
+            elapsed += Time.deltaTime;
+            float normalizedTime = Mathf.Clamp01(elapsed / duration);
+            float curvedTime = slideCurve.Evaluate(normalizedTime);
+
+            transform.position = Vector3.LerpUnclamped(startWorld, targetWorld, curvedTime);
             yield return null;
         }
 
@@ -42,9 +74,10 @@ public class BoxSlide : MonoBehaviour
         if (snapper != null)
         {
             snapper.SetSnappingEnabled(true);
-            snapper.SnapNow(); // snap once when stationary
+            snapper.SnapNow();
         }
 
-        sliding = false;
+        isSliding = false;
+        slideRoutine = null;
     }
 }
