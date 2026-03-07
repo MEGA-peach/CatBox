@@ -8,7 +8,6 @@ public class MovableObstacleTilemap : FloorButtonTarget
     [Header("References")]
     [SerializeField] private Grid grid;
     [SerializeField] private Tilemap tilemap;
-    [SerializeField] private GridCellBlockChecker blockChecker;
     [SerializeField] private GridCellIndicator blockedCellIndicator;
 
     [Header("Movement")]
@@ -17,6 +16,13 @@ public class MovableObstacleTilemap : FloorButtonTarget
     [SerializeField] private float secondsPerUnit = 0.08f;
     [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     [SerializeField] private Vector2 durationClamp = new Vector2(0.08f, 0.4f);
+
+    [Header("Blocking Check")]
+    [Tooltip("Only objects on these layers will block wall movement (box, cat, bottles, yarn, etc).")]
+    [SerializeField] private LayerMask blockingOccupantLayers;
+
+    [Tooltip("Slightly smaller than a full cell to avoid edge false-positives.")]
+    [SerializeField] private Vector2 overlapBoxSize = new Vector2(0.8f, 0.8f);
 
     [Header("Blocked Jiggle")]
     [SerializeField] private float blockedBumpDistance = 0.08f;
@@ -33,7 +39,7 @@ public class MovableObstacleTilemap : FloorButtonTarget
         if (tilemap == null)
             tilemap = GetComponent<Tilemap>();
 
-        SnapToGrid();
+        // Keep the exact authored scene position.
         homeWorldPosition = transform.position;
     }
 
@@ -136,11 +142,12 @@ public class MovableObstacleTilemap : FloorButtonTarget
     {
         blockingCell = Vector3Int.zero;
 
-        if (grid == null || tilemap == null || blockChecker == null)
+        if (grid == null || tilemap == null)
             return false;
 
         Vector3 worldDelta = desiredWorld - transform.position;
         BoundsInt bounds = tilemap.cellBounds;
+        Transform myRoot = transform.root;
 
         foreach (Vector3Int localCell in bounds.allPositionsWithin)
         {
@@ -150,9 +157,26 @@ public class MovableObstacleTilemap : FloorButtonTarget
             Vector3 currentTileWorld = tilemap.GetCellCenterWorld(localCell);
             Vector3 targetTileWorld = currentTileWorld + worldDelta;
             Vector3Int targetCell = grid.WorldToCell(targetTileWorld);
+            Vector3 targetCellCenter = grid.GetCellCenterWorld(targetCell);
 
-            if (blockChecker.IsCellBlocked(targetCell, gameObject))
+            Collider2D[] hits = Physics2D.OverlapBoxAll(
+                targetCellCenter,
+                overlapBoxSize,
+                0f,
+                blockingOccupantLayers
+            );
+
+            if (hits == null || hits.Length == 0)
+                continue;
+
+            foreach (Collider2D hit in hits)
             {
+                if (hit == null)
+                    continue;
+
+                if (hit.transform.root == myRoot)
+                    continue;
+
                 blockingCell = targetCell;
                 return true;
             }
@@ -166,18 +190,17 @@ public class MovableObstacleTilemap : FloorButtonTarget
         if (!extended || grid == null)
             return homeWorldPosition;
 
-        Vector3Int homeCell = grid.WorldToCell(homeWorldPosition);
-        Vector3Int targetCell = homeCell + (NormalizeToCardinal(moveDirection) * moveDistanceCells);
-        return grid.GetCellCenterWorld(targetCell);
-    }
+        Vector3Int normalizedDirection = NormalizeToCardinal(moveDirection);
 
-    private void SnapToGrid()
-    {
-        if (grid == null)
-            return;
+        Vector3 worldOffset = new Vector3(
+            normalizedDirection.x * grid.cellSize.x * moveDistanceCells,
+            normalizedDirection.y * grid.cellSize.y * moveDistanceCells,
+            0f
+        );
 
-        Vector3Int cell = grid.WorldToCell(transform.position);
-        transform.position = grid.GetCellCenterWorld(cell);
+        Vector3 targetWorld = homeWorldPosition + worldOffset;
+        targetWorld.z = homeWorldPosition.z;
+        return targetWorld;
     }
 
     private Vector3Int NormalizeToCardinal(Vector3Int direction)
