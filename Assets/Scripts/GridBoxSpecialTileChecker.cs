@@ -13,9 +13,17 @@ public class GridBoxSpecialTileChecker : MonoBehaviour
     [Header("Goal Tilemap")]
     [SerializeField] private Tilemap goalTilemap;
 
+    [Header("Pits")]
+    [SerializeField] private PitTileController pitController;
+
     public bool IsGoalCell(Vector3Int cell)
     {
         return goalTilemap != null && goalTilemap.HasTile(cell);
+    }
+
+    public bool IsOpenPitCell(Vector3Int cell)
+    {
+        return pitController != null && pitController.IsOpenPitCell(cell);
     }
 
     public bool TryGetArrowDirection(Vector3Int cell, out Vector3Int direction)
@@ -47,11 +55,5 @@ public class GridBoxSpecialTileChecker : MonoBehaviour
         }
 
         return false;
-    }
-
-    public bool TryGetSpecialTileData(Vector3Int cell, out bool isGoal, out Vector3Int arrowDirection)
-    {
-        isGoal = IsGoalCell(cell);
-        return TryGetArrowDirection(cell, out arrowDirection);
     }
 }

@@ -10,13 +10,13 @@ public class GridSlideMover : MonoBehaviour
     [SerializeField] private BoxSlide slideAnimator;
     [SerializeField] private GridCellBlockChecker blockChecker;
     [SerializeField] private GridBoxSpecialTileChecker specialTileChecker;
+    [SerializeField] private PitFallable pitFallable;
 
     [Header("Rules")]
     [SerializeField] private bool allowOnlyCardinalDirections = true;
     [SerializeField] private int maxSlideCells = 50;
 
     [Header("Arrow Behavior")]
-    [Tooltip("Delay after landing on an arrow tile before the arrow pushes the box.")]
     [SerializeField] private float arrowTriggerDelay = 0.10f;
 
     [Header("Debug")]
@@ -33,6 +33,9 @@ public class GridSlideMover : MonoBehaviour
 
         if (slideAnimator == null)
             slideAnimator = GetComponent<BoxSlide>();
+
+        if (pitFallable == null)
+            pitFallable = GetComponent<PitFallable>();
     }
 
     public bool TrySlideInDirection(Vector3Int direction)
@@ -86,7 +89,16 @@ public class GridSlideMover : MonoBehaviour
             finalCell = nextCell;
             cellsMoved++;
 
-            // If we encounter an arrow while moving, stop on that arrow tile.
+            // Open pit intercepts before arrow/wall end.
+            if (specialTileChecker != null && specialTileChecker.IsOpenPitCell(finalCell))
+            {
+                if (logSlideDebug)
+                    Debug.Log($"[{nameof(GridSlideMover)}] {name} stopping on pit at {finalCell}");
+
+                break;
+            }
+
+            // Arrow intercept.
             if (specialTileChecker != null &&
                 specialTileChecker.TryGetArrowDirection(finalCell, out Vector3Int foundArrowDirection))
             {
@@ -98,9 +110,7 @@ public class GridSlideMover : MonoBehaviour
         }
 
         if (cellsMoved >= maxSlideCells)
-        {
             Debug.LogWarning($"[{nameof(GridSlideMover)}] {name} hit maxSlideCells before finding a blocker.");
-        }
 
         if (finalCell == currentCell)
             return false;
@@ -112,7 +122,6 @@ public class GridSlideMover : MonoBehaviour
         if (slideAnimator != null)
         {
             bool started = slideAnimator.SlideToWorld(targetWorld);
-
             if (!started)
                 return false;
         }
@@ -142,7 +151,15 @@ public class GridSlideMover : MonoBehaviour
         if (logSlideDebug)
             Debug.Log($"[{nameof(GridSlideMover)}] {name} landed on {landedCell}");
 
-        // Check win first.
+        // Pit first.
+        if (specialTileChecker != null && specialTileChecker.IsOpenPitCell(landedCell))
+        {
+            OnEnteredPit(landedCell);
+            chainedMoveRoutine = null;
+            yield break;
+        }
+
+        // Goal next.
         if (specialTileChecker != null && specialTileChecker.IsGoalCell(landedCell))
         {
             OnReachedGoalTile(landedCell);
@@ -150,7 +167,7 @@ public class GridSlideMover : MonoBehaviour
             yield break;
         }
 
-        // Then check arrow directly on the landed cell.
+        // Arrow last.
         if (specialTileChecker != null &&
             specialTileChecker.TryGetArrowDirection(landedCell, out Vector3Int arrowDirection))
         {
@@ -164,6 +181,19 @@ public class GridSlideMover : MonoBehaviour
         }
 
         chainedMoveRoutine = null;
+    }
+
+    private void OnEnteredPit(Vector3Int pitCell)
+    {
+        Debug.Log($"[{nameof(GridSlideMover)}] {name} entered pit at {pitCell}");
+
+        if (pitFallable != null)
+        {
+            pitFallable.FallIntoPit(pitCell);
+            return;
+        }
+
+        Debug.LogWarning($"[{nameof(GridSlideMover)}] No {nameof(PitFallable)} found on {name}.");
     }
 
     private void OnReachedGoalTile(Vector3Int goalCell)

@@ -18,6 +18,9 @@ public class GridCellBlockChecker : MonoBehaviour
     [Header("Grid")]
     [SerializeField] private Grid grid;
 
+    [Header("Special Tiles")]
+    [SerializeField] private GridBoxSpecialTileChecker specialTileChecker;
+
     public bool IsCellBlocked(Vector3Int cell)
     {
         return IsCellBlocked(cell, null);
@@ -25,10 +28,16 @@ public class GridCellBlockChecker : MonoBehaviour
 
     public bool IsCellBlocked(Vector3Int cell, GameObject ignoredObject)
     {
+        bool ignoredObjectIsCat = ignoredObject != null && ignoredObject.GetComponent<CatDragAndPlace>() != null;
+
         bool blockedByWall = wallTilemap != null && wallTilemap.HasTile(cell);
         bool blockedByObstacle = obstacleTilemap != null && obstacleTilemap.HasTile(cell);
 
         if (blockedByWall || blockedByObstacle)
+            return true;
+
+        // Open pits are invalid only for the cat.
+        if (ignoredObjectIsCat && specialTileChecker != null && specialTileChecker.IsOpenPitCell(cell))
             return true;
 
         if (grid == null)
@@ -47,7 +56,6 @@ public class GridCellBlockChecker : MonoBehaviour
             return false;
 
         Transform ignoredRoot = ignoredObject != null ? ignoredObject.transform.root : null;
-        bool ignoredObjectIsCat = ignoredObject != null && ignoredObject.GetComponent<CatDragAndPlace>() != null;
 
         foreach (Collider2D hit in hits)
         {
@@ -57,8 +65,7 @@ public class GridCellBlockChecker : MonoBehaviour
             if (ignoredRoot != null && hit.transform.root == ignoredRoot)
                 continue;
 
-            // Special case:
-            // If the moving object is the cat, allow placement onto an open goal box.
+            // Let the cat place onto the already-open goal box.
             if (ignoredObjectIsCat)
             {
                 BoxWinSequence openBox = hit.GetComponentInParent<BoxWinSequence>();
@@ -78,8 +85,7 @@ public class GridCellBlockChecker : MonoBehaviour
         if (grid == null) return;
 
         Gizmos.color = Color.yellow;
-        Vector3 origin = transform.position;
-        Gizmos.DrawWireCube(origin, overlapBoxSize);
+        Gizmos.DrawWireCube(transform.position, overlapBoxSize);
     }
 #endif
 }
