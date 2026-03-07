@@ -47,13 +47,24 @@ public class GridCellBlockChecker : MonoBehaviour
             return false;
 
         Transform ignoredRoot = ignoredObject != null ? ignoredObject.transform.root : null;
+        bool ignoredObjectIsCat = ignoredObject != null && ignoredObject.GetComponent<CatDragAndPlace>() != null;
 
         foreach (Collider2D hit in hits)
         {
-            if (hit == null) continue;
+            if (hit == null)
+                continue;
 
             if (ignoredRoot != null && hit.transform.root == ignoredRoot)
                 continue;
+
+            // Special case:
+            // If the moving object is the cat, allow placement onto an open goal box.
+            if (ignoredObjectIsCat)
+            {
+                BoxWinSequence openBox = hit.GetComponentInParent<BoxWinSequence>();
+                if (openBox != null && openBox.IsOpenForCat)
+                    continue;
+            }
 
             return true;
         }

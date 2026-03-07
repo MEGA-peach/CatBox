@@ -11,6 +11,10 @@ public class CatAnimatorDriver : MonoBehaviour
     [SerializeField] private string faceYParam = "FaceY";
     [SerializeField] private string hitTriggerParam = "Hit";
     [SerializeField] private string draggedBoolParam = "IsDragged";
+    [SerializeField] private string inBoxBoolParam = "IsInBox";
+
+    [Header("State Names")]
+    [SerializeField] private string inBoxStateName = "InBox";
 
     private readonly Vector2 defaultFacing = Vector2.down;
     private Vector2 currentFacing = Vector2.down;
@@ -22,6 +26,7 @@ public class CatAnimatorDriver : MonoBehaviour
 
         FaceDefault();
         SetDragged(false);
+        SetInBox(false);
     }
 
     public void FaceDirection(Vector3Int gridDirection)
@@ -76,6 +81,23 @@ public class CatAnimatorDriver : MonoBehaviour
             return;
 
         animator.SetBool(draggedBoolParam, isDragged);
+    }
+
+    public void SetInBox(bool isInBox)
+    {
+        if (animator == null)
+            return;
+
+        animator.SetBool(inBoxBoolParam, isInBox);
+
+        if (isInBox)
+        {
+            animator.ResetTrigger(hitTriggerParam);
+            animator.SetBool(draggedBoolParam, false);
+
+            if (!string.IsNullOrEmpty(inBoxStateName))
+                animator.Play(inBoxStateName, 0, 0f);
+        }
     }
 
     public void PlayHit()

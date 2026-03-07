@@ -13,6 +13,10 @@ public class CatDragAndPlace : MonoBehaviour
     [SerializeField] private GridAdjacentPushResolver pushResolver;
     [SerializeField] private CatAnimatorDriver catAnimator;
 
+    [Header("Open Box Detection")]
+    [SerializeField] private LayerMask openBoxLayers;
+    [SerializeField] private Vector2 openBoxCheckSize = new Vector2(0.8f, 0.8f);
+
     [Header("Push Timing")]
     [SerializeField] private float preHitDelay = 0.06f;
     [SerializeField] private float hitImpactDelay = 0.10f;
@@ -22,6 +26,7 @@ public class CatDragAndPlace : MonoBehaviour
     private Vector3 dragOffset;
     private Vector3Int startCell;
     private Coroutine actionRoutine;
+    private bool permanentlyLocked;
 
     private void Awake()
     {
@@ -40,7 +45,7 @@ public class CatDragAndPlace : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (actionLocked)
+        if (permanentlyLocked || actionLocked)
             return;
 
         dragging = true;
@@ -64,7 +69,7 @@ public class CatDragAndPlace : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (!dragging || actionLocked)
+        if (permanentlyLocked || !dragging || actionLocked)
             return;
 
         Vector3 mouseWorld = GetMouseWorld();
@@ -78,7 +83,7 @@ public class CatDragAndPlace : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if (actionLocked)
+        if (permanentlyLocked || actionLocked)
             return;
 
         dragging = false;
@@ -115,10 +120,19 @@ public class CatDragAndPlace : MonoBehaviour
         if (landedThisDrop)
             placementFeedback?.PlayPlacementFeedback();
 
-        if (placedOnValidCell && grid != null && pushResolver != null)
+        if (!placedOnValidCell || grid == null)
         {
-            Vector3Int catCell = grid.WorldToCell(transform.position);
+            catAnimator?.FaceDefault();
+            return;
+        }
 
+        Vector3Int catCell = grid.WorldToCell(transform.position);
+
+        if (TryPlaceCatIntoOpenBox(catCell))
+            return;
+
+        if (pushResolver != null)
+        {
             bool foundPushable = pushResolver.TryGetAdjacentPushable(
                 catCell,
                 out CardinalPushable pushable,
@@ -144,6 +158,56 @@ public class CatDragAndPlace : MonoBehaviour
         {
             catAnimator?.FaceDefault();
         }
+    }
+
+    public void LockInteraction()
+    {
+        permanentlyLocked = true;
+        dragging = false;
+        actionLocked = true;
+
+        if (preview != null)
+            preview.Hide();
+
+        if (snapper != null)
+            snapper.SetSnappingEnabled(true);
+    }
+
+    private bool TryPlaceCatIntoOpenBox(Vector3Int catCell)
+    {
+        Vector3 center = grid.GetCellCenterWorld(catCell);
+
+        // Check everything in the cell instead of relying on a specific layer mask.
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, openBoxCheckSize, 0f);
+        if (hits == null || hits.Length == 0)
+        {
+            Debug.Log("[CatDragAndPlace] No colliders found for open box check.");
+            return false;
+        }
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null)
+                continue;
+
+            BoxWinSequence openBox = hit.GetComponentInParent<BoxWinSequence>();
+            if (openBox == null)
+                continue;
+
+            Debug.Log($"[CatDragAndPlace] Found BoxWinSequence on {openBox.name}. IsOpenForCat = {openBox.IsOpenForCat}");
+
+            if (!openBox.IsOpenForCat)
+                continue;
+
+            bool accepted = openBox.TryPlaceCatInBox(transform, catAnimator, this);
+
+            Debug.Log($"[CatDragAndPlace] TryPlaceCatInBox result = {accepted}");
+
+            if (accepted)
+                return true;
+        }
+
+        return false;
     }
 
     private IEnumerator PlayPushSequence(Vector3Int catCell, CardinalPushable pushable)

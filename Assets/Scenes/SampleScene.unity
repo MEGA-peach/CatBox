@@ -2829,6 +2829,10 @@ MonoBehaviour:
   placementFeedback: {fileID: 1046791530}
   pushResolver: {fileID: 1009591115}
   catAnimator: {fileID: 1046791531}
+  openBoxLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  openBoxCheckSize: {x: 0.8, y: 0.8}
   preHitDelay: 0.06
   hitImpactDelay: 0.16
 --- !u!61 &1046791527
@@ -3021,6 +3025,8 @@ MonoBehaviour:
   faceYParam: FaceY
   hitTriggerParam: Hit
   draggedBoolParam: IsDragged
+  inBoxBoolParam: IsInBox
+  inBoxStateName: InBox
 --- !u!1 &1117461307
 GameObject:
   m_ObjectHideFlags: 0
@@ -5009,6 +5015,7 @@ GameObject:
   - component: {fileID: 1353301067}
   - component: {fileID: 1353301072}
   - component: {fileID: 1353301071}
+  - component: {fileID: 1353301073}
   m_Layer: 3
   m_Name: Box
   m_TagString: Untagged
@@ -5309,6 +5316,27 @@ MonoBehaviour:
   maxSlideCells: 20
   arrowTriggerDelay: 0.1
   logSlideDebug: 1
+--- !u!114 &1353301073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353301064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 641c0f10a7d48d14491d33b1194a604f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boxSpriteRenderer: {fileID: 1353301065}
+  closedBoxSprite: {fileID: 3178697267623139822, guid: 8854ef877719f8d498b4d4c89d2af9ad, type: 3}
+  openBoxSprite: {fileID: -3851956488807306155, guid: 8854ef877719f8d498b4d4c89d2af9ad, type: 3}
+  poofPrefab: {fileID: 228284500127180901, guid: 9f086c5aac8660e48941e49ae7c25100, type: 3}
+  poofOffset: {x: 0, y: -0.12, z: 0}
+  poofStartScale: {x: 1, y: 1, z: 1}
+  poofShrinkRate: 1
+  poofFadeRate: 1
+  disableFurtherBoxMovementAfterGoal: 1
 --- !u!1 &1538328747
 GameObject:
   m_ObjectHideFlags: 0

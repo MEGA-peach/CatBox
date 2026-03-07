@@ -170,8 +170,14 @@ public class GridSlideMover : MonoBehaviour
     {
         Debug.Log($"[{nameof(GridSlideMover)}] {name} reached goal tile at {goalCell}");
 
-        // Replace later with real win logic.
+        BoxWinSequence winSequence = GetComponent<BoxWinSequence>();
+        if (winSequence != null)
+        {
+            winSequence.PlayGoalReachedSequence();
+            return;
+        }
 
+        Debug.LogWarning($"[{nameof(GridSlideMover)}] No {nameof(BoxWinSequence)} found on {name}.");
     }
 
     private Vector3Int NormalizeToCardinal(Vector3Int direction)
