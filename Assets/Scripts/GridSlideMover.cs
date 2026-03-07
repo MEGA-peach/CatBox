@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -8,13 +9,20 @@ public class GridSlideMover : MonoBehaviour
     [SerializeField] private GridSnapper snapper;
     [SerializeField] private BoxSlide slideAnimator;
     [SerializeField] private GridCellBlockChecker blockChecker;
+    [SerializeField] private GridBoxSpecialTileChecker specialTileChecker;
 
     [Header("Rules")]
     [SerializeField] private bool allowOnlyCardinalDirections = true;
     [SerializeField] private int maxSlideCells = 50;
 
+    [Header("Arrow Behavior")]
+    [Tooltip("Delay after landing on an arrow tile before the arrow pushes the box.")]
+    [SerializeField] private float arrowTriggerDelay = 0.10f;
+
     [Header("Debug")]
     [SerializeField] private bool logSlideDebug = false;
+
+    private Coroutine chainedMoveRoutine;
 
     public bool IsMoving => slideAnimator != null && slideAnimator.IsSliding;
 
@@ -50,9 +58,7 @@ public class GridSlideMover : MonoBehaviour
         if (blockedImmediately)
         {
             if (logSlideDebug)
-            {
                 Debug.Log($"[{nameof(GridSlideMover)}] {name} blocked immediately at {firstNextCell}");
-            }
 
             if (slideAnimator != null)
             {
@@ -72,15 +78,23 @@ public class GridSlideMover : MonoBehaviour
             bool blocked = blockChecker.IsCellBlocked(nextCell, gameObject);
 
             if (logSlideDebug)
-            {
                 Debug.Log($"[{nameof(GridSlideMover)}] {name} checking {nextCell} | blocked = {blocked}");
-            }
 
             if (blocked)
                 break;
 
             finalCell = nextCell;
             cellsMoved++;
+
+            // If we encounter an arrow while moving, stop on that arrow tile.
+            if (specialTileChecker != null &&
+                specialTileChecker.TryGetArrowDirection(finalCell, out Vector3Int foundArrowDirection))
+            {
+                if (logSlideDebug)
+                    Debug.Log($"[{nameof(GridSlideMover)}] {name} stopping on arrow at {finalCell} with direction {foundArrowDirection}");
+
+                break;
+            }
         }
 
         if (cellsMoved >= maxSlideCells)
@@ -97,7 +111,10 @@ public class GridSlideMover : MonoBehaviour
 
         if (slideAnimator != null)
         {
-            slideAnimator.SlideToWorld(targetWorld);
+            bool started = slideAnimator.SlideToWorld(targetWorld);
+
+            if (!started)
+                return false;
         }
         else if (snapper != null)
         {
@@ -109,7 +126,52 @@ public class GridSlideMover : MonoBehaviour
             transform.position = targetWorld;
         }
 
+        if (chainedMoveRoutine != null)
+            StopCoroutine(chainedMoveRoutine);
+
+        chainedMoveRoutine = StartCoroutine(HandlePostSlide(finalCell));
+
         return true;
+    }
+
+    private IEnumerator HandlePostSlide(Vector3Int landedCell)
+    {
+        while (slideAnimator != null && slideAnimator.IsSliding)
+            yield return null;
+
+        if (logSlideDebug)
+            Debug.Log($"[{nameof(GridSlideMover)}] {name} landed on {landedCell}");
+
+        // Check win first.
+        if (specialTileChecker != null && specialTileChecker.IsGoalCell(landedCell))
+        {
+            OnReachedGoalTile(landedCell);
+            chainedMoveRoutine = null;
+            yield break;
+        }
+
+        // Then check arrow directly on the landed cell.
+        if (specialTileChecker != null &&
+            specialTileChecker.TryGetArrowDirection(landedCell, out Vector3Int arrowDirection))
+        {
+            if (logSlideDebug)
+                Debug.Log($"[{nameof(GridSlideMover)}] {name} triggering arrow from {landedCell} toward {arrowDirection}");
+
+            if (arrowTriggerDelay > 0f)
+                yield return new WaitForSeconds(arrowTriggerDelay);
+
+            TrySlideInDirection(arrowDirection);
+        }
+
+        chainedMoveRoutine = null;
+    }
+
+    private void OnReachedGoalTile(Vector3Int goalCell)
+    {
+        Debug.Log($"[{nameof(GridSlideMover)}] {name} reached goal tile at {goalCell}");
+
+        // Replace later with real win logic.
+
     }
 
     private Vector3Int NormalizeToCardinal(Vector3Int direction)
