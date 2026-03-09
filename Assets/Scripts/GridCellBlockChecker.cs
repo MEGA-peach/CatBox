@@ -12,14 +12,14 @@ public class GridCellBlockChecker : MonoBehaviour
     [Tooltip("Objects on these layers will make a cell invalid for placement.")]
     [SerializeField] private LayerMask blockingObjectLayers;
 
-    [Tooltip("Slightly smaller than a full cell to avoid edge false-positives.")]
-    [SerializeField] private Vector2 overlapBoxSize = new Vector2(0.8f, 0.8f);
-
     [Header("Grid")]
     [SerializeField] private Grid grid;
 
     [Header("Special Tiles")]
     [SerializeField] private GridBoxSpecialTileChecker specialTileChecker;
+
+    [Header("General Object Overlap")]
+    [SerializeField] private Vector2 overlapBoxSize = new Vector2(1.0f, 1.0f);
 
     public bool IsCellBlocked(Vector3Int cell)
     {
@@ -30,19 +30,54 @@ public class GridCellBlockChecker : MonoBehaviour
     {
         bool ignoredObjectIsCat = ignoredObject != null && ignoredObject.GetComponent<CatDragAndPlace>() != null;
 
-        bool blockedByWall = wallTilemap != null && wallTilemap.HasTile(cell);
-        bool blockedByObstacle = obstacleTilemap != null && obstacleTilemap.HasTile(cell);
-
-        if (blockedByWall || blockedByObstacle)
-            return true;
-
-        // Open pits are invalid only for the cat.
-        if (ignoredObjectIsCat && specialTileChecker != null && specialTileChecker.IsOpenPitCell(cell))
-            return true;
-
         if (grid == null)
             return false;
 
+        // Tilemap blocking
+        if (wallTilemap != null && wallTilemap.HasTile(cell))
+            return true;
+
+        if (obstacleTilemap != null && obstacleTilemap.HasTile(cell))
+            return true;
+
+        // Open pits are invalid for the cat
+        if (ignoredObjectIsCat && specialTileChecker != null && specialTileChecker.IsOpenPitCell(cell))
+            return true;
+
+        Transform ignoredRoot = ignoredObject != null ? ignoredObject.transform.root : null;
+
+        // ------------------------------------------------------------
+        // BOX RULE USING TAG + LOGICAL CELL
+        // If this cell contains a box, it is blocked unless the box is open.
+        // ------------------------------------------------------------
+        GameObject[] boxes = GameObject.FindGameObjectsWithTag("Box");
+
+        foreach (GameObject boxObject in boxes)
+        {
+            if (boxObject == null || !boxObject.activeInHierarchy)
+                continue;
+
+            if (ignoredRoot != null && boxObject.transform.root == ignoredRoot)
+                continue;
+
+            Vector3Int boxCell = GetObjectCell(boxObject);
+
+            if (boxCell != cell)
+                continue;
+
+            BoxWinSequence boxWinSequence = boxObject.GetComponent<BoxWinSequence>();
+            if (boxWinSequence == null)
+                boxWinSequence = boxObject.GetComponentInParent<BoxWinSequence>();
+
+            if (ignoredObjectIsCat && boxWinSequence != null && boxWinSequence.IsOpenForCat)
+                return false;
+
+            return true;
+        }
+
+        // ------------------------------------------------------------
+        // General object blocking
+        // ------------------------------------------------------------
         Vector3 cellCenter = grid.GetCellCenterWorld(cell);
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(
@@ -55,23 +90,17 @@ public class GridCellBlockChecker : MonoBehaviour
         if (hits == null || hits.Length == 0)
             return false;
 
-        Transform ignoredRoot = ignoredObject != null ? ignoredObject.transform.root : null;
-
         foreach (Collider2D hit in hits)
         {
-            if (hit == null)
+            if (hit == null || !hit.gameObject.activeInHierarchy)
                 continue;
 
             if (ignoredRoot != null && hit.transform.root == ignoredRoot)
                 continue;
 
-            // Let the cat place onto the already-open goal box.
-            if (ignoredObjectIsCat)
-            {
-                BoxWinSequence openBox = hit.GetComponentInParent<BoxWinSequence>();
-                if (openBox != null && openBox.IsOpenForCat)
-                    continue;
-            }
+            // Skip boxes here because they were already handled above.
+            if (hit.CompareTag("Box") || hit.GetComponentInParent<BoxWinSequence>() != null)
+                continue;
 
             return true;
         }
@@ -79,13 +108,29 @@ public class GridCellBlockChecker : MonoBehaviour
         return false;
     }
 
+    private Vector3Int GetObjectCell(GameObject obj)
+    {
+        if (obj == null || grid == null)
+            return Vector3Int.zero;
+
+        GridSnapper snapper = obj.GetComponent<GridSnapper>();
+        if (snapper != null)
+            return snapper.GetCurrentCell();
+
+        return grid.WorldToCell(obj.transform.position);
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        if (grid == null) return;
+        if (grid == null)
+            return;
+
+        Vector3Int cell = grid.WorldToCell(transform.position);
+        Vector3 center = grid.GetCellCenterWorld(cell);
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(transform.position, overlapBoxSize);
+        Gizmos.DrawWireCube(center, overlapBoxSize);
     }
 #endif
 }

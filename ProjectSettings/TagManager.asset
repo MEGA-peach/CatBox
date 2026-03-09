@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Box
   layers:
   - Default
   - TransparentFX
@@ -52,4 +53,7 @@ TagManager:
     locked: 0
   - name: Cat
     uniqueID: 472820035
+    locked: 0
+  - name: UI
+    uniqueID: 42863583
     locked: 0

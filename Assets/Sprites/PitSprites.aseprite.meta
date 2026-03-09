@@ -33,7 +33,7 @@ ScriptedImporter:
     sRGBTexture: 1
     spriteMode: 2
     spriteExtrude: 1
-    spriteMeshType: 1
+    spriteMeshType: 0
     alignment: 0
     spritePivot: {x: 0.5, y: 0.5}
     spritePixelsToUnits: 32
@@ -98,7 +98,7 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639085055707349921
+  platformSettingsDirtyTick: 639085581378064471
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -685,7 +685,7 @@ ScriptedImporter:
   spriteSheetImportData:
   - name: PitSprites_0
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -705,7 +705,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_1
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -725,7 +725,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_2
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -745,7 +745,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_3
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -765,7 +765,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_4
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -785,7 +785,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_5
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -805,7 +805,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_6
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -825,7 +825,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_7
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -845,7 +845,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_8
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -865,7 +865,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_9
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -885,7 +885,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_10
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -905,7 +905,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_11
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -925,7 +925,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_12
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -945,7 +945,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_13
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -965,7 +965,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_14
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -985,7 +985,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_15
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1005,7 +1005,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_16
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1025,7 +1025,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_17
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1045,7 +1045,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_18
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1065,7 +1065,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_19
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1085,7 +1085,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_20
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1105,7 +1105,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_21
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1125,7 +1125,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_22
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1145,7 +1145,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_23
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1165,7 +1165,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_24
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1185,7 +1185,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_25
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1205,7 +1205,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_26
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1225,7 +1225,7 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: PitSprites_27
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -1235,26 +1235,6 @@ ScriptedImporter:
       width: 31
       height: 27
     spriteID: 8e3338df04f82344f9b4837450aae8a5
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 0, y: 0}
-  - name: PitSprites_28
-    originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
-    border: {x: 0, y: 0, z: 0, w: 0}
-    rect:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 250
-      height: 248
-    spriteID: a3b22236a4e6a6b4fb088af3cc9b6684
     spriteBone: []
     spriteOutline: []
     vertices: []

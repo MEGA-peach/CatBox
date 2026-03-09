@@ -12,6 +12,10 @@ public class CatDragAndPlace : MonoBehaviour
     [SerializeField] private PlacementFeedback placementFeedback;
     [SerializeField] private GridAdjacentPushResolver pushResolver;
     [SerializeField] private CatAnimatorDriver catAnimator;
+    [SerializeField] private Collider2D catCollider;
+
+    [Header("Blocking Object Check")]
+    [SerializeField] private LayerMask blockingObjectLayers;
 
     [Header("Open Box Detection")]
     [SerializeField] private LayerMask openBoxLayers;
@@ -23,10 +27,15 @@ public class CatDragAndPlace : MonoBehaviour
 
     private bool dragging;
     private bool actionLocked;
+    private bool permanentlyLocked;
+    private bool currentDropBlockedByCollider;
+    private bool currentDropBlockedByClosedBox;
+
     private Vector3 dragOffset;
     private Vector3Int startCell;
     private Coroutine actionRoutine;
-    private bool permanentlyLocked;
+
+    private readonly Collider2D[] overlapResults = new Collider2D[16];
 
     private void Awake()
     {
@@ -41,6 +50,9 @@ public class CatDragAndPlace : MonoBehaviour
 
         if (catAnimator == null)
             catAnimator = GetComponent<CatAnimatorDriver>();
+
+        if (catCollider == null)
+            catCollider = GetComponent<Collider2D>();
     }
 
     private void OnMouseDown()
@@ -49,6 +61,8 @@ public class CatDragAndPlace : MonoBehaviour
             return;
 
         dragging = true;
+        currentDropBlockedByCollider = false;
+        currentDropBlockedByClosedBox = false;
         catAnimator?.SetDragged(true);
 
         if (snapper != null)
@@ -63,7 +77,7 @@ public class CatDragAndPlace : MonoBehaviour
         if (preview != null)
         {
             preview.Show();
-            preview.UpdatePreview(transform.position, gameObject);
+            preview.UpdatePreview(transform.position, gameObject, false);
         }
     }
 
@@ -74,11 +88,17 @@ public class CatDragAndPlace : MonoBehaviour
 
         Vector3 mouseWorld = GetMouseWorld();
         Vector3 intendedPosition = mouseWorld + dragOffset;
-
         transform.position = intendedPosition;
 
+        currentDropBlockedByCollider = IsPlacementBlockedByObjectCollider();
+
+        Vector3Int targetCell = grid != null ? grid.WorldToCell(intendedPosition) : Vector3Int.zero;
+        currentDropBlockedByClosedBox = IsTargetCellBlockedByClosedBox(targetCell);
+
+        bool forceBlocked = currentDropBlockedByCollider || currentDropBlockedByClosedBox;
+
         if (preview != null)
-            preview.UpdatePreview(intendedPosition, gameObject);
+            preview.UpdatePreview(intendedPosition, gameObject, forceBlocked);
     }
 
     private void OnMouseUp()
@@ -97,7 +117,9 @@ public class CatDragAndPlace : MonoBehaviour
 
         if (preview != null && snapper != null)
         {
-            if (preview.IsCurrentCellValid)
+            bool finalValid = preview.IsCurrentCellValid && !currentDropBlockedByCollider && !currentDropBlockedByClosedBox;
+
+            if (finalValid)
             {
                 snapper.SnapToCell(preview.CurrentCell);
                 placedOnValidCell = true;
@@ -112,13 +134,26 @@ public class CatDragAndPlace : MonoBehaviour
         }
         else if (snapper != null)
         {
-            snapper.SnapNow();
-            placedOnValidCell = true;
+            bool finalValid = !currentDropBlockedByCollider && !currentDropBlockedByClosedBox;
+
+            if (finalValid)
+            {
+                snapper.SnapNow();
+                placedOnValidCell = true;
+            }
+            else
+            {
+                snapper.SnapToCell(startCell);
+            }
+
             landedThisDrop = true;
         }
 
         if (landedThisDrop)
             placementFeedback?.PlayPlacementFeedback();
+
+        currentDropBlockedByCollider = false;
+        currentDropBlockedByClosedBox = false;
 
         if (!placedOnValidCell || grid == null)
         {
@@ -173,17 +208,87 @@ public class CatDragAndPlace : MonoBehaviour
             snapper.SetSnappingEnabled(true);
     }
 
+    private bool IsPlacementBlockedByObjectCollider()
+    {
+        if (catCollider == null)
+            return false;
+
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.useLayerMask = true;
+        filter.layerMask = blockingObjectLayers;
+        filter.useTriggers = true;
+
+        int hitCount = catCollider.OverlapCollider(filter, overlapResults);
+
+        if (hitCount <= 0)
+            return false;
+
+        Transform myRoot = transform.root;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hit = overlapResults[i];
+            if (hit == null)
+                continue;
+
+            if (hit.transform.root == myRoot)
+                continue;
+
+            BoxWinSequence box = hit.GetComponentInParent<BoxWinSequence>();
+            if (box != null)
+            {
+                if (box.IsOpenForCat)
+                    continue;
+
+                return true;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsTargetCellBlockedByClosedBox(Vector3Int targetCell)
+    {
+        if (grid == null)
+            return false;
+
+        GameObject[] boxes = GameObject.FindGameObjectsWithTag("Box");
+
+        foreach (GameObject boxObject in boxes)
+        {
+            if (boxObject == null || !boxObject.activeInHierarchy)
+                continue;
+
+            GridSnapper boxSnapper = boxObject.GetComponent<GridSnapper>();
+            Vector3Int boxCell = boxSnapper != null
+                ? boxSnapper.GetCurrentCell()
+                : grid.WorldToCell(boxObject.transform.position);
+
+            if (boxCell != targetCell)
+                continue;
+
+            BoxWinSequence boxWinSequence = boxObject.GetComponent<BoxWinSequence>();
+            if (boxWinSequence == null)
+                boxWinSequence = boxObject.GetComponentInParent<BoxWinSequence>();
+
+            if (boxWinSequence != null && boxWinSequence.IsOpenForCat)
+                return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
     private bool TryPlaceCatIntoOpenBox(Vector3Int catCell)
     {
         Vector3 center = grid.GetCellCenterWorld(catCell);
 
-        // Check everything in the cell instead of relying on a specific layer mask.
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, openBoxCheckSize, 0f);
         if (hits == null || hits.Length == 0)
-        {
-            Debug.Log("[CatDragAndPlace] No colliders found for open box check.");
             return false;
-        }
 
         foreach (Collider2D hit in hits)
         {
@@ -194,15 +299,10 @@ public class CatDragAndPlace : MonoBehaviour
             if (openBox == null)
                 continue;
 
-            Debug.Log($"[CatDragAndPlace] Found BoxWinSequence on {openBox.name}. IsOpenForCat = {openBox.IsOpenForCat}");
-
             if (!openBox.IsOpenForCat)
                 continue;
 
             bool accepted = openBox.TryPlaceCatInBox(transform, catAnimator, this);
-
-            Debug.Log($"[CatDragAndPlace] TryPlaceCatInBox result = {accepted}");
-
             if (accepted)
                 return true;
         }
@@ -233,6 +333,8 @@ public class CatDragAndPlace : MonoBehaviour
     {
         dragging = false;
         actionLocked = false;
+        currentDropBlockedByCollider = false;
+        currentDropBlockedByClosedBox = false;
 
         catAnimator?.SetDragged(false);
         catAnimator?.FaceDefault();

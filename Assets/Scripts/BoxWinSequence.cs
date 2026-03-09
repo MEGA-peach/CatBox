@@ -34,6 +34,8 @@ public class BoxWinSequence : MonoBehaviour
 
         if (boxSpriteRenderer != null && closedBoxSprite != null)
             boxSpriteRenderer.sprite = closedBoxSprite;
+
+        boxOpenForCat = false;
     }
 
     public void PlayGoalReachedSequence()

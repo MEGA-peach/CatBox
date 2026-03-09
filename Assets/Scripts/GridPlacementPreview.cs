@@ -35,14 +35,19 @@ public class GridPlacementPreview : MonoBehaviour
             spriteRenderer.enabled = false;
     }
 
-    public void UpdatePreview(Vector3 worldPosition, GameObject ignoredObject = null)
+    public void UpdatePreview(Vector3 worldPosition, GameObject ignoredObject = null, bool forceBlocked = false)
     {
-        if (grid == null) return;
+        if (grid == null)
+            return;
 
         CurrentCell = grid.WorldToCell(worldPosition);
         transform.position = grid.GetCellCenterWorld(CurrentCell);
 
-        bool isBlocked = blockChecker != null && blockChecker.IsCellBlocked(CurrentCell, ignoredObject);
+        Debug.Log($"[GridPlacementPreview] blockChecker is {(blockChecker == null ? "NULL" : blockChecker.name)}");
+
+        bool blockedByGrid = blockChecker != null && blockChecker.IsCellBlocked(CurrentCell, ignoredObject);
+        bool isBlocked = blockedByGrid || forceBlocked;
+
         IsCurrentCellValid = !isBlocked;
 
         if (spriteRenderer != null)

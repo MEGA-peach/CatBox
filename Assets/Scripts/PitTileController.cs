@@ -11,6 +11,16 @@ public class PitTileController : FloorButtonTarget
     [Header("State")]
     [SerializeField] private bool startSealed = false;
 
+    [Header("Occupant Recheck")]
+    [Tooltip("Objects on these layers can be re-checked and dropped when the pit opens.")]
+    [SerializeField] private LayerMask fallableLayers;
+
+    [Tooltip("Slightly smaller than a full cell to avoid edge false-positives.")]
+    [SerializeField] private Vector2 overlapBoxSize = new Vector2(0.8f, 0.8f);
+
+    [Header("Grid")]
+    [SerializeField] private Grid grid;
+
     private bool isSealed;
 
     public bool IsSealed => isSealed;
@@ -38,6 +48,10 @@ public class PitTileController : FloorButtonTarget
 
         isSealed = sealedState;
         ApplyVisualState();
+
+        // If the pit just became open again, re-check any objects standing on it.
+        if (!isSealed)
+            RecheckOccupantsOnOpenPits();
     }
 
     public bool IsOpenPitCell(Vector3Int cell)
@@ -57,5 +71,43 @@ public class PitTileController : FloorButtonTarget
 
         if (sealedPitTilemap != null)
             sealedPitTilemap.gameObject.SetActive(isSealed);
+    }
+
+    private void RecheckOccupantsOnOpenPits()
+    {
+        if (grid == null || openPitTilemap == null)
+            return;
+
+        BoundsInt bounds = openPitTilemap.cellBounds;
+
+        foreach (Vector3Int cell in bounds.allPositionsWithin)
+        {
+            if (!openPitTilemap.HasTile(cell))
+                continue;
+
+            Vector3 center = grid.GetCellCenterWorld(cell);
+
+            Collider2D[] hits = Physics2D.OverlapBoxAll(
+                center,
+                overlapBoxSize,
+                0f,
+                fallableLayers
+            );
+
+            if (hits == null || hits.Length == 0)
+                continue;
+
+            foreach (Collider2D hit in hits)
+            {
+                if (hit == null)
+                    continue;
+
+                PitFallable fallable = hit.GetComponentInParent<PitFallable>();
+                if (fallable == null || fallable.IsFalling)
+                    continue;
+
+                fallable.FallIntoPit(cell);
+            }
+        }
     }
 }
