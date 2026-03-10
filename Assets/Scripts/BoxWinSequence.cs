@@ -16,12 +16,19 @@ public class BoxWinSequence : MonoBehaviour
     [SerializeField] private float poofShrinkRate = 2.0f;
     [SerializeField] private float poofFadeRate = 2.0f;
 
+    [Header("Final Celebration")]
+    [SerializeField] private FloatingSpriteEffect heartsEffectPrefab;
+    [SerializeField] private Vector3 heartsOffset = new Vector3(0f, 0.1f, 0f);
+    [SerializeField] private float heartsEffectDuration = 2.0f;
+    [SerializeField] private LevelCompleteMenuUI levelCompleteMenuUI;
+
     [Header("State")]
     [SerializeField] private bool disableFurtherBoxMovementAfterGoal = true;
 
     private bool goalReached;
     private bool catEnteredBox;
     private bool boxOpenForCat;
+    private bool finalSequencePlaying;
 
     public bool GoalReached => goalReached;
     public bool CatEnteredBox => catEnteredBox;
@@ -36,6 +43,9 @@ public class BoxWinSequence : MonoBehaviour
             boxSpriteRenderer.sprite = closedBoxSprite;
 
         boxOpenForCat = false;
+
+        if (levelCompleteMenuUI != null)
+            levelCompleteMenuUI.Hide();
     }
 
     public void PlayGoalReachedSequence()
@@ -48,9 +58,9 @@ public class BoxWinSequence : MonoBehaviour
     }
 
     public bool TryPlaceCatInBox(
-     Transform catTransform,
-     CatAnimatorDriver catAnimator,
-     CatDragAndPlace catDragAndPlace = null)
+        Transform catTransform,
+        CatAnimatorDriver catAnimator,
+        CatDragAndPlace catDragAndPlace = null)
     {
         Debug.Log($"[BoxWinSequence] TryPlaceCatInBox called on {name}. boxOpenForCat={boxOpenForCat}, catEnteredBox={catEnteredBox}");
 
@@ -93,14 +103,12 @@ public class BoxWinSequence : MonoBehaviour
             poofInstance.transform.localScale = poofStartScale;
         }
 
-        // While the poof is covering the box, open the box.
         if (boxSpriteRenderer != null && openBoxSprite != null)
             boxSpriteRenderer.sprite = openBoxSprite;
 
         if (poofInstance != null)
             yield return StartCoroutine(FadeAndShrinkPoof(poofInstance));
 
-        // After the poof dissipates, the box can accept the cat.
         boxOpenForCat = true;
 
         if (disableFurtherBoxMovementAfterGoal)
@@ -145,5 +153,33 @@ public class BoxWinSequence : MonoBehaviour
     private void OnCatEnteredBox()
     {
         Debug.Log($"[{nameof(BoxWinSequence)}] Cat entered the box.");
+
+        if (finalSequencePlaying)
+            return;
+
+        StartCoroutine(FinalCelebrationRoutine());
+    }
+
+    private IEnumerator FinalCelebrationRoutine()
+    {
+        finalSequencePlaying = true;
+
+        if (heartsEffectPrefab != null)
+        {
+            FloatingSpriteEffect effectInstance = Instantiate(
+                heartsEffectPrefab,
+                transform.position + heartsOffset,
+                Quaternion.identity
+            );
+
+            effectInstance.Play();
+        }
+
+        yield return new WaitForSeconds(heartsEffectDuration);
+
+        if (levelCompleteMenuUI != null)
+            levelCompleteMenuUI.Show();
+
+        finalSequencePlaying = false;
     }
 }
