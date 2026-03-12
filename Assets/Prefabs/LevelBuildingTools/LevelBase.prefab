@@ -2312,6 +2312,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 7226893606061604356}
+    - target: {fileID: 3118217750351350422, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_SortingOrder
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 8123546338711998967, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_Name
       value: QuitLevelButton
