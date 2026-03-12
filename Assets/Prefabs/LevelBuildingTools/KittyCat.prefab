@@ -34,7 +34,7 @@ Transform:
   m_GameObject: {fileID: 3157816271493275120}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.1040182, y: 0.24974418, z: -394.26938}
+  m_LocalPosition: {x: 1.1040182, y: 0.24974418, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -177,6 +177,10 @@ MonoBehaviour:
   placementFeedback: {fileID: 7797634776871738581}
   pushResolver: {fileID: 0}
   catAnimator: {fileID: 6264271610725195115}
+  catCollider: {fileID: 0}
+  blockingObjectLayers:
+    serializedVersion: 2
+    m_Bits: 0
   openBoxLayers:
     serializedVersion: 2
     m_Bits: 0
