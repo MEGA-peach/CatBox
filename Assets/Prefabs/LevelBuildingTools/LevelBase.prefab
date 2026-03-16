@@ -513,6 +513,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wallTilemap: {fileID: 8107832104043873929}
   obstacleTilemap: {fileID: 6224413775243419040}
+  movableWall: {fileID: 6765422438693640757}
   blockingObjectLayers:
     serializedVersion: 2
     m_Bits: 200
@@ -2130,6 +2131,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4185444844707847151}
     - target: {fileID: 7727160582030818546, guid: ab3c324f4f19a984eb8e02666efd0ee9, type: 3}
+      propertyPath: movableWall
+      value: 
+      objectReference: {fileID: 6765422438693640757}
+    - target: {fileID: 7727160582030818546, guid: ab3c324f4f19a984eb8e02666efd0ee9, type: 3}
       propertyPath: pushResolver
       value: 
       objectReference: {fileID: 6857034492814760395}
@@ -2283,6 +2288,17 @@ Tilemap:
   m_CorrespondingSourceObject: {fileID: 9179076537708354938, guid: 97d44901dbf4f9841a0d37c31a847a35, type: 3}
   m_PrefabInstance: {fileID: 2955256511637749978}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6765422438693640757 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8421931410970811119, guid: 97d44901dbf4f9841a0d37c31a847a35, type: 3}
+  m_PrefabInstance: {fileID: 2955256511637749978}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69f0ac59638c8164a9b560f5a0154545, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1839735485 &8107832104043873929 stripped
 Tilemap:
   m_CorrespondingSourceObject: {fileID: 6451371782877152851, guid: 97d44901dbf4f9841a0d37c31a847a35, type: 3}

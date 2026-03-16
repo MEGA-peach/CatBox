@@ -39,7 +39,6 @@ public class MovableObstacleTilemap : FloorButtonTarget
         if (tilemap == null)
             tilemap = GetComponent<Tilemap>();
 
-        // Keep the exact authored scene position.
         homeWorldPosition = transform.position;
     }
 
@@ -59,6 +58,28 @@ public class MovableObstacleTilemap : FloorButtonTarget
             StopCoroutine(moveRoutine);
 
         moveRoutine = StartCoroutine(MoveToStateRoutine(extended));
+    }
+
+    public bool OccupiesCell(Vector3Int cell)
+    {
+        if (tilemap == null || grid == null)
+            return false;
+
+        BoundsInt bounds = tilemap.cellBounds;
+
+        foreach (Vector3Int localCell in bounds.allPositionsWithin)
+        {
+            if (!tilemap.HasTile(localCell))
+                continue;
+
+            Vector3 world = tilemap.GetCellCenterWorld(localCell);
+            Vector3Int currentGridCell = grid.WorldToCell(world);
+
+            if (currentGridCell == cell)
+                return true;
+        }
+
+        return false;
     }
 
     private IEnumerator MoveToStateRoutine(bool targetExtended)

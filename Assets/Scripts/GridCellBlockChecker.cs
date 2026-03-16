@@ -8,6 +8,9 @@ public class GridCellBlockChecker : MonoBehaviour
     [SerializeField] private Tilemap wallTilemap;
     [SerializeField] private Tilemap obstacleTilemap;
 
+    [Header("Movable Wall")]
+    [SerializeField] private MovableObstacleTilemap movableWall;
+
     [Header("Object Blocking")]
     [Tooltip("Objects on these layers will make a cell invalid for placement.")]
     [SerializeField] private LayerMask blockingObjectLayers;
@@ -33,14 +36,18 @@ public class GridCellBlockChecker : MonoBehaviour
         if (grid == null)
             return false;
 
-        // Tilemap blocking
+        // ------------------------------------------------------------
+        // Fixed tilemap blocking
+        // ------------------------------------------------------------
         if (wallTilemap != null && wallTilemap.HasTile(cell))
             return true;
 
         if (obstacleTilemap != null && obstacleTilemap.HasTile(cell))
             return true;
 
+        // ------------------------------------------------------------
         // Open pits are invalid for the cat
+        // ------------------------------------------------------------
         if (ignoredObjectIsCat && specialTileChecker != null && specialTileChecker.IsOpenPitCell(cell))
             return true;
 
@@ -48,7 +55,6 @@ public class GridCellBlockChecker : MonoBehaviour
 
         // ------------------------------------------------------------
         // BOX RULE USING TAG + LOGICAL CELL
-        // If this cell contains a box, it is blocked unless the box is open.
         // ------------------------------------------------------------
         GameObject[] boxes = GameObject.FindGameObjectsWithTag("Box");
 
@@ -76,7 +82,20 @@ public class GridCellBlockChecker : MonoBehaviour
         }
 
         // ------------------------------------------------------------
+        // SINGLE MOVABLE WALL AS TRUE GRID OCCUPANT
+        // ------------------------------------------------------------
+        if (movableWall != null && movableWall.gameObject.activeInHierarchy)
+        {
+            if (ignoredRoot == null || movableWall.transform.root != ignoredRoot)
+            {
+                if (movableWall.OccupiesCell(cell))
+                    return true;
+            }
+        }
+
+        // ------------------------------------------------------------
         // General object blocking
+        // Skip boxes and movable wall here because they are handled above.
         // ------------------------------------------------------------
         Vector3 cellCenter = grid.GetCellCenterWorld(cell);
 
@@ -98,8 +117,10 @@ public class GridCellBlockChecker : MonoBehaviour
             if (ignoredRoot != null && hit.transform.root == ignoredRoot)
                 continue;
 
-            // Skip boxes here because they were already handled above.
             if (hit.CompareTag("Box") || hit.GetComponentInParent<BoxWinSequence>() != null)
+                continue;
+
+            if (movableWall != null && hit.GetComponentInParent<MovableObstacleTilemap>() == movableWall)
                 continue;
 
             return true;
