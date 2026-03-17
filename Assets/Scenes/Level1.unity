@@ -2158,6 +2158,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LevelBase
       objectReference: {fileID: 0}
+    - target: {fileID: 4956657309927981911, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
+      propertyPath: levelNumber
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8107832104043873929, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
       propertyPath: m_Color.b
       value: 0.75

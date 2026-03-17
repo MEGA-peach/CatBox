@@ -2312,6 +2312,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8742914855284214251}
     m_Modifications:
+    - target: {fileID: 252457792047606595, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1.6799316
+      objectReference: {fileID: 0}
     - target: {fileID: 1392957944302558911, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_text
       value: Quit Level
@@ -2480,6 +2484,10 @@ PrefabInstance:
       propertyPath: grid
       value: 
       objectReference: {fileID: 3363757138007059692}
+    - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
+      propertyPath: levelNumber
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
       propertyPath: heartsEffectPrefab
       value: 

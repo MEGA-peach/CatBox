@@ -75,12 +75,20 @@ public static class SaveManager
             return;
         }
 
+        if (CurrentSave.completedLevels == null)
+        {
+            Debug.LogWarning("SaveManager: completedLevels array is null.");
+            return;
+        }
+
         int index = levelNumber - 1;
         if (index < 0 || index >= CurrentSave.completedLevels.Length)
         {
             Debug.LogWarning("SaveManager: Tried to complete invalid level number: " + levelNumber);
             return;
         }
+
+        Debug.Log($"[SaveManager] Before CompleteLevel: levelNumber={levelNumber}, highestUnlockedLevel={CurrentSave.highestUnlockedLevel}");
 
         CurrentSave.completedLevels[index] = true;
 
@@ -103,6 +111,8 @@ public static class SaveManager
         {
             CurrentSave.highestUnlockedLevel = nextLevel;
         }
+
+        Debug.Log($"[SaveManager] After CompleteLevel: completed level {levelNumber}, new highestUnlockedLevel={CurrentSave.highestUnlockedLevel}");
 
         SaveGame();
     }

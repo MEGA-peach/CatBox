@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public class BoxWinSequence : MonoBehaviour
@@ -26,8 +28,7 @@ public class BoxWinSequence : MonoBehaviour
     [SerializeField] private bool disableFurtherBoxMovementAfterGoal = true;
 
     [Header("Level Progress")]
-    [SerializeField] private int levelNumber = 1;
-
+    [SerializeField] private int levelNumber = 0; // 0 = auto-detect from scene name
 
     private bool goalReached;
     private bool catEnteredBox;
@@ -50,6 +51,8 @@ public class BoxWinSequence : MonoBehaviour
 
         if (levelCompleteMenuUI != null)
             levelCompleteMenuUI.Hide();
+
+        ResolveLevelNumber();
     }
 
     public void PlayGoalReachedSequence()
@@ -181,11 +184,35 @@ public class BoxWinSequence : MonoBehaviour
 
         yield return new WaitForSeconds(heartsEffectDuration);
 
+        Debug.Log($"[BoxWinSequence] Completing level {levelNumber}");
         SaveManager.CompleteLevel(levelNumber);
 
         if (levelCompleteMenuUI != null)
             levelCompleteMenuUI.Show();
 
         finalSequencePlaying = false;
+    }
+
+    private void ResolveLevelNumber()
+    {
+        if (levelNumber > 0)
+        {
+            Debug.Log($"[BoxWinSequence] Using manually assigned level number: {levelNumber}");
+            return;
+        }
+
+        string sceneName = SceneManager.GetActiveScene().name;
+        Match match = Regex.Match(sceneName, @"\d+");
+
+        if (match.Success && int.TryParse(match.Value, out int parsedLevel))
+        {
+            levelNumber = parsedLevel;
+            Debug.Log($"[BoxWinSequence] Auto-detected level number {levelNumber} from scene '{sceneName}'");
+        }
+        else
+        {
+            Debug.LogWarning($"[BoxWinSequence] Could not auto-detect level number from scene name '{sceneName}'. Defaulting to 1.");
+            levelNumber = 1;
+        }
     }
 }
