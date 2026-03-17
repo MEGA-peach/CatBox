@@ -3,23 +3,31 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[DisallowMultipleComponent]
 public class LevelSelectButton : MonoBehaviour
 {
     [Header("Level Info")]
     [SerializeField] private int levelNumber = 1;
     [SerializeField] private string sceneName = "";
 
-    [Header("UI References")]
+    [Header("References")]
     [SerializeField] private Button button;
     [SerializeField] private TMP_Text levelNumberText;
     [SerializeField] private GameObject lockIcon;
-    [SerializeField] private GameObject completedIcon;
-    [SerializeField] private TMP_Text starText;
+    [SerializeField] private GameObject completionIcon;
+
+    [Header("Newest Uncompleted Highlight")]
+    [SerializeField] private GameObject newestUnlockedHighlightObject;
+    [SerializeField] private Image newestUnlockedHighlightImage;
+    [SerializeField] private Color newestUnlockedHighlightColor = Color.white;
 
     private void Awake()
     {
         if (button == null)
             button = GetComponent<Button>();
+
+        if (newestUnlockedHighlightImage == null && newestUnlockedHighlightObject != null)
+            newestUnlockedHighlightImage = newestUnlockedHighlightObject.GetComponent<Image>();
     }
 
     public void Refresh()
@@ -28,39 +36,18 @@ public class LevelSelectButton : MonoBehaviour
         bool isCompleted = SaveManager.IsLevelCompleted(levelNumber);
 
         if (levelNumberText != null)
-        {
             levelNumberText.text = levelNumber.ToString();
-        }
 
         if (button != null)
-        {
             button.interactable = isUnlocked;
-        }
 
         if (lockIcon != null)
-        {
             lockIcon.SetActive(!isUnlocked);
-        }
 
-        if (completedIcon != null)
-        {
-            completedIcon.SetActive(isCompleted);
-        }
+        if (completionIcon != null)
+            completionIcon.SetActive(isCompleted);
 
-        if (starText != null)
-        {
-            int index = levelNumber - 1;
-            int stars = 0;
-
-            if (SaveManager.CurrentSave != null &&
-                index >= 0 &&
-                index < SaveManager.CurrentSave.starRatings.Length)
-            {
-                stars = SaveManager.CurrentSave.starRatings[index];
-            }
-
-            starText.text = stars > 0 ? stars.ToString() + "★" : "";
-        }
+        RefreshNewestUnlockedHighlight(isUnlocked, isCompleted);
     }
 
     public void OnPressed()
@@ -68,13 +55,37 @@ public class LevelSelectButton : MonoBehaviour
         if (!SaveManager.IsLevelUnlocked(levelNumber))
             return;
 
-        if (!string.IsNullOrEmpty(sceneName))
+        if (string.IsNullOrWhiteSpace(sceneName))
         {
-            SceneManager.LoadScene(sceneName);
+            Debug.LogWarning($"No scene name assigned for level {levelNumber} on {name}.");
+            return;
         }
-        else
+
+        SceneManager.LoadScene(sceneName);
+    }
+
+    private void RefreshNewestUnlockedHighlight(bool isUnlocked, bool isCompleted)
+    {
+        if (newestUnlockedHighlightObject == null)
+            return;
+
+        bool shouldShowHighlight = false;
+
+        if (SaveManager.CurrentSave != null)
         {
-            Debug.LogWarning("LevelSelectButton: Scene name is empty for level " + levelNumber);
+            int highestUnlockedLevel = Mathf.Max(1, SaveManager.CurrentSave.highestUnlockedLevel);
+
+            shouldShowHighlight =
+                isUnlocked &&
+                !isCompleted &&
+                levelNumber == highestUnlockedLevel;
+        }
+
+        newestUnlockedHighlightObject.SetActive(shouldShowHighlight);
+
+        if (shouldShowHighlight && newestUnlockedHighlightImage != null)
+        {
+            newestUnlockedHighlightImage.color = newestUnlockedHighlightColor;
         }
     }
 }
