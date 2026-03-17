@@ -25,6 +25,10 @@ public class BoxWinSequence : MonoBehaviour
     [Header("State")]
     [SerializeField] private bool disableFurtherBoxMovementAfterGoal = true;
 
+    [Header("Level Progress")]
+    [SerializeField] private int levelNumber = 1;
+
+
     private bool goalReached;
     private bool catEnteredBox;
     private bool boxOpenForCat;
@@ -176,6 +180,8 @@ public class BoxWinSequence : MonoBehaviour
         }
 
         yield return new WaitForSeconds(heartsEffectDuration);
+
+        SaveManager.CompleteLevel(levelNumber);
 
         if (levelCompleteMenuUI != null)
             levelCompleteMenuUI.Show();
