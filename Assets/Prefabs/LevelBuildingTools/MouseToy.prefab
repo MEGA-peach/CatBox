@@ -282,6 +282,24 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  slideSounds:
+    clips:
+    - {fileID: 8300000, guid: c4e41c03df86cdb4fb9feeb81ad69b46, type: 3}
+    - {fileID: 8300000, guid: b754710ffe476614e90703ebe71b4930, type: 3}
+    - {fileID: 8300000, guid: 302fb27ffb989a2449818929fb27e418, type: 3}
+    volumeScale: 1
+    minPitch: 1
+    maxPitch: 1
+    allowImmediateRepeat: 0
+  impactSounds:
+    clips:
+    - {fileID: 8300000, guid: 5e3686b7af13e5f47b9b6170bac845d5, type: 3}
+    volumeScale: 1
+    minPitch: 1
+    maxPitch: 1
+    allowImmediateRepeat: 0
+  slideVolume: 1
+  impactVolume: 1
 --- !u!114 &2377619701211300085
 MonoBehaviour:
   m_ObjectHideFlags: 0

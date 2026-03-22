@@ -28,6 +28,13 @@ public class CatDragAndPlace : MonoBehaviour
     [SerializeField] private float preHitDelay = 0.06f;
     [SerializeField] private float hitImpactDelay = 0.10f;
 
+    [Header("Cat Audio")]
+    [SerializeField] private RandomizedAudioSet pickupSounds;
+    [SerializeField] private RandomizedAudioSet placeSounds;
+
+    private int lastPickupIndex = -1;
+    private int lastPlaceIndex = -1;
+
     private bool dragging;
     private bool actionLocked;
     private bool permanentlyLocked;
@@ -70,6 +77,7 @@ public class CatDragAndPlace : MonoBehaviour
         currentDropBlockedByMovableWall = false;
 
         catAnimator?.SetDragged(true);
+        AudioManager.Instance?.PlaySfx(pickupSounds, ref lastPickupIndex);
 
         if (snapper != null)
         {
@@ -168,6 +176,9 @@ public class CatDragAndPlace : MonoBehaviour
 
         if (landedThisDrop)
             placementFeedback?.PlayPlacementFeedback();
+
+        if (landedThisDrop)
+            AudioManager.Instance?.PlaySfx(placeSounds, ref lastPlaceIndex);
 
         currentDropBlockedByCollider = false;
         currentDropBlockedByClosedBox = false;

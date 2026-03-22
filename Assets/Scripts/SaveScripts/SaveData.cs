@@ -8,6 +8,10 @@ public class SaveData
     public float[] bestTimes;
     public int[] starRatings;
 
+    public float masterVolume = 1f;
+    public float musicVolume = 1f;
+    public float sfxVolume = 1f;
+
     public SaveData(int totalLevels)
     {
         highestUnlockedLevel = 1;
@@ -21,5 +25,9 @@ public class SaveData
             bestTimes[i] = -1f;
             starRatings[i] = 0;
         }
+
+        masterVolume = 1f;
+        musicVolume = 1f;
+        sfxVolume = 1f;
     }
 }

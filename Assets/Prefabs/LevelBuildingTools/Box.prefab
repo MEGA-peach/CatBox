@@ -238,6 +238,30 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  slideSounds:
+    clips:
+    - {fileID: 8300000, guid: fc3533cd0615a2a4da81dddb7c9a0794, type: 3}
+    - {fileID: 8300000, guid: 7af6da51f6d9df044bc26d87e840738f, type: 3}
+    - {fileID: 8300000, guid: a0e3a45ab51c6ec4aa5b65302d6f4502, type: 3}
+    - {fileID: 8300000, guid: 3ef149194b603504fa629186db767823, type: 3}
+    - {fileID: 8300000, guid: 43ed7b0808bb30341978fb5573ff8d7a, type: 3}
+    - {fileID: 8300000, guid: e4afbf293914f0642905e78325d2ee5d, type: 3}
+    - {fileID: 8300000, guid: d80573472cde4514d943717149ec3a93, type: 3}
+    - {fileID: 8300000, guid: 786b3fd246103b7419adb2bfe85d8a55, type: 3}
+    - {fileID: 8300000, guid: d11204c723816544c9f3a6b05f916004, type: 3}
+    - {fileID: 8300000, guid: b1b8eec303cc17f4c857a050a87be47f, type: 3}
+    volumeScale: 1
+    minPitch: 1
+    maxPitch: 1
+    allowImmediateRepeat: 0
+  impactSounds:
+    clips: []
+    volumeScale: 1
+    minPitch: 1
+    maxPitch: 1
+    allowImmediateRepeat: 0
+  slideVolume: 1
+  impactVolume: 1
 --- !u!61 &6981435092496334106
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -339,11 +363,37 @@ MonoBehaviour:
   poofStartScale: {x: 1, y: 1, z: 1}
   poofShrinkRate: 1
   poofFadeRate: 1
+  poofSounds:
+    clips:
+    - {fileID: 8300000, guid: 6a5013f8ef8cdf8409c2ac55ead5971c, type: 3}
+    - {fileID: 8300000, guid: d796f913d06269348a7434d87bd5cbae, type: 3}
+    - {fileID: 8300000, guid: df1470bc9e4bd5f43ba00444c8e9b3d0, type: 3}
+    - {fileID: 8300000, guid: 2d6aea5593c1d824ea55a915bd9008aa, type: 3}
+    - {fileID: 8300000, guid: 5617fdc642a3d1e4898e1afde3195091, type: 3}
+    - {fileID: 8300000, guid: 40b2e7c0430f858428a29b8f7725f149, type: 3}
+    - {fileID: 8300000, guid: 8ba1f9e984f73e54badeca2b3af16114, type: 3}
+    - {fileID: 8300000, guid: b6859bd38267eb841a67594d0e8860ce, type: 3}
+    - {fileID: 8300000, guid: 2b4260b08b2caa048b1491a8f1d0a458, type: 3}
+    - {fileID: 8300000, guid: 071fa90e74f40b84bba8e581a52262ad, type: 3}
+    - {fileID: 8300000, guid: 93d0e31750c31bd4e9d0a0978cfb506f, type: 3}
+    volumeScale: 1
+    minPitch: 1
+    maxPitch: 1
+    allowImmediateRepeat: 0
+  WinChimeSounds:
+    clips:
+    - {fileID: 8300000, guid: 7af6e8da3bfe67d4ab7a52783c3e7283, type: 3}
+    - {fileID: 8300000, guid: 4aa2e8aa7ee832f4097d63f416b138e1, type: 3}
+    volumeScale: 1
+    minPitch: 1
+    maxPitch: 1
+    allowImmediateRepeat: 0
   heartsEffectPrefab: {fileID: 0}
   heartsOffset: {x: 0, y: 0.1, z: 0}
   heartsEffectDuration: 2
   levelCompleteMenuUI: {fileID: 0}
   disableFurtherBoxMovementAfterGoal: 1
+  levelNumber: 0
 --- !u!114 &3385697862008032983
 MonoBehaviour:
   m_ObjectHideFlags: 0

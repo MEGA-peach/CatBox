@@ -167,4 +167,55 @@ public static class SaveManager
         CurrentSave = newSave;
         SaveGame();
     }
+
+    public static float GetMasterVolume(float fallback = 1f)
+    {
+        if (CurrentSave == null)
+            return fallback;
+
+        return CurrentSave.masterVolume;
+    }
+
+    public static float GetMusicVolume(float fallback = 1f)
+    {
+        if (CurrentSave == null)
+            return fallback;
+
+        return CurrentSave.musicVolume;
+    }
+
+    public static float GetSfxVolume(float fallback = 1f)
+    {
+        if (CurrentSave == null)
+            return fallback;
+
+        return CurrentSave.sfxVolume;
+    }
+
+    public static void SetMasterVolume(float value)
+    {
+        if (CurrentSave == null)
+            return;
+
+        CurrentSave.masterVolume = Mathf.Clamp01(value);
+        SaveGame();
+    }
+
+    public static void SetMusicVolume(float value)
+    {
+        if (CurrentSave == null)
+            return;
+
+        CurrentSave.musicVolume = Mathf.Clamp01(value);
+        SaveGame();
+    }
+
+    public static void SetSfxVolume(float value)
+    {
+        if (CurrentSave == null)
+            return;
+
+        CurrentSave.sfxVolume = Mathf.Clamp01(value);
+        SaveGame();
+    }
 }

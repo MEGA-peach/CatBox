@@ -34,4 +34,8 @@ public class CardinalPushable : MonoBehaviour
         int dy = Mathf.Abs(delta.y);
         return (dx + dy) == 1;
     }
+    public void PlayImpactSfx()
+    {
+        slideMover?.PlayImpactSfx();
+    }
 }

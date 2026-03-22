@@ -74,6 +74,7 @@ public class GridSlideMover : MonoBehaviour
 
         Vector3Int finalCell = currentCell;
         int cellsMoved = 0;
+        bool stoppedByBlocker = false;
 
         while (cellsMoved < maxSlideCells)
         {
@@ -84,7 +85,10 @@ public class GridSlideMover : MonoBehaviour
                 Debug.Log($"[{nameof(GridSlideMover)}] {name} checking {nextCell} | blocked = {blocked}");
 
             if (blocked)
+            {
+                stoppedByBlocker = true;
                 break;
+            }
 
             finalCell = nextCell;
             cellsMoved++;
@@ -138,15 +142,17 @@ public class GridSlideMover : MonoBehaviour
         if (chainedMoveRoutine != null)
             StopCoroutine(chainedMoveRoutine);
 
-        chainedMoveRoutine = StartCoroutine(HandlePostSlide(finalCell));
+        chainedMoveRoutine = StartCoroutine(HandlePostSlide(finalCell, stoppedByBlocker));
 
         return true;
     }
 
-    private IEnumerator HandlePostSlide(Vector3Int landedCell)
+    private IEnumerator HandlePostSlide(Vector3Int landedCell, bool stoppedByBlocker)
     {
         while (slideAnimator != null && slideAnimator.IsSliding)
             yield return null;
+        if (stoppedByBlocker)
+            slideAnimator?.PlayImpactSfx();
 
         if (logSlideDebug)
             Debug.Log($"[{nameof(GridSlideMover)}] {name} landed on {landedCell}");
@@ -226,5 +232,10 @@ public class GridSlideMover : MonoBehaviour
         int dx = Mathf.Abs(direction.x);
         int dy = Mathf.Abs(direction.y);
         return (dx + dy) == 1;
+    }
+
+    public void PlayImpactSfx()
+    {
+        slideAnimator?.PlayImpactSfx();
     }
 }

@@ -99,9 +99,9 @@ public class SettingsMenuController : MonoBehaviour
             resolutionDropdown.RefreshShownValue();
         }
 
-        float masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, defaultMasterVolume);
-        float musicVolume = PlayerPrefs.GetFloat(MusicVolumeKey, defaultMusicVolume);
-        float sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, defaultSfxVolume);
+        float masterVolume = SaveManager.GetMasterVolume(defaultMasterVolume);
+        float musicVolume = SaveManager.GetMusicVolume(defaultMusicVolume);
+        float sfxVolume = SaveManager.GetSfxVolume(defaultSfxVolume);
 
         if (masterVolumeSlider != null)
             masterVolumeSlider.value = masterVolume;
@@ -154,10 +154,9 @@ public class SettingsMenuController : MonoBehaviour
         ApplySfxVolume(defaultSfxVolume);
 
         SaveResolutionIndex(defaultResolutionIndex);
-        PlayerPrefs.SetFloat(MasterVolumeKey, defaultMasterVolume);
-        PlayerPrefs.SetFloat(MusicVolumeKey, defaultMusicVolume);
-        PlayerPrefs.SetFloat(SfxVolumeKey, defaultSfxVolume);
-        PlayerPrefs.Save();
+        SaveManager.SetMasterVolume(defaultMasterVolume);
+        SaveManager.SetMusicVolume(defaultMusicVolume);
+        SaveManager.SetSfxVolume(defaultSfxVolume);
     }
 
     private void OnResolutionChanged(int index)
@@ -175,8 +174,7 @@ public class SettingsMenuController : MonoBehaviour
             return;
 
         ApplyMasterVolume(value);
-        PlayerPrefs.SetFloat(MasterVolumeKey, value);
-        PlayerPrefs.Save();
+        SaveManager.SetMasterVolume(value);
     }
 
     private void OnMusicVolumeChanged(float value)
@@ -185,8 +183,7 @@ public class SettingsMenuController : MonoBehaviour
             return;
 
         ApplyMusicVolume(value);
-        PlayerPrefs.SetFloat(MusicVolumeKey, value);
-        PlayerPrefs.Save();
+        SaveManager.SetMusicVolume(value);
     }
 
     private void OnSfxVolumeChanged(float value)
@@ -195,8 +192,7 @@ public class SettingsMenuController : MonoBehaviour
             return;
 
         ApplySfxVolume(value);
-        PlayerPrefs.SetFloat(SfxVolumeKey, value);
-        PlayerPrefs.Save();
+        SaveManager.SetSfxVolume(value);
     }
 
     private void ApplyResolution(int index)
@@ -212,23 +208,17 @@ public class SettingsMenuController : MonoBehaviour
 
     private void ApplyMasterVolume(float value)
     {
-        // Placeholder for future audio manager hookup.
-        // Example later:
-        // AudioManager.Instance.SetMasterVolume(value);
+        AudioManager.Instance?.SetMasterVolume(value);
     }
 
     private void ApplyMusicVolume(float value)
     {
-        // Placeholder for future audio manager hookup.
-        // Example later:
-        // AudioManager.Instance.SetMusicVolume(value);
+        AudioManager.Instance?.SetMusicVolume(value);
     }
 
     private void ApplySfxVolume(float value)
     {
-        // Placeholder for future audio manager hookup.
-        // Example later:
-        // AudioManager.Instance.SetSfxVolume(value);
+        AudioManager.Instance?.SetSfxVolume(value);
     }
 
     private int GetSavedResolutionIndex()

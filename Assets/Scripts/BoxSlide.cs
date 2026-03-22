@@ -29,6 +29,16 @@ public class BoxSlide : MonoBehaviour
     [SerializeField] private AnimationCurve blockedBumpOutCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     [SerializeField] private AnimationCurve blockedBumpReturnCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
+    [Header("Audio")]
+    [SerializeField] private RandomizedAudioSet slideSounds;
+    [SerializeField] private RandomizedAudioSet impactSounds;
+    [SerializeField, Range(0f, 1f)] private float slideVolume = 1f;
+    [SerializeField, Range(0f, 1f)] private float impactVolume = 1f;
+
+
+    private int lastSlideIndex = -1;
+    private int lastImpactIndex = -1;
+
     private Coroutine moveRoutine;
     private bool isSliding;
 
@@ -70,6 +80,7 @@ public class BoxSlide : MonoBehaviour
         }
 
         isSliding = false;
+        StopSlideSfx();
 
         if (snapper != null)
         {
@@ -81,6 +92,7 @@ public class BoxSlide : MonoBehaviour
     private IEnumerator SlideRoutine(Vector3 targetWorld)
     {
         isSliding = true;
+        PlaySlideSfx();
 
         if (snapper != null)
             snapper.SetSnappingEnabled(false);
@@ -144,11 +156,13 @@ public class BoxSlide : MonoBehaviour
 
         isSliding = false;
         moveRoutine = null;
+        StopSlideSfx();
     }
 
     private IEnumerator BlockedBumpRoutine(Vector3 worldDirection)
     {
         isSliding = true;
+        PlayImpactSfx();
 
         if (snapper != null)
             snapper.SetSnappingEnabled(false);
@@ -194,5 +208,28 @@ public class BoxSlide : MonoBehaviour
 
         isSliding = false;
         moveRoutine = null;
+    }
+
+    public void PlayImpactSfx()
+    {
+        StopSlideSfx();
+
+        if (impactSounds == null || !impactSounds.HasAnyClips)
+            return;
+
+        AudioManager.Instance?.PlaySfx(impactSounds, ref lastImpactIndex, impactVolume);
+    }
+
+    public void PlaySlideSfx()
+    {
+        if (slideSounds == null || !slideSounds.HasAnyClips)
+            return;
+
+        AudioManager.Instance?.PlaySfxForOwner(gameObject, slideSounds, ref lastSlideIndex, slideVolume);
+    }
+
+    public void StopSlideSfx()
+    {
+        AudioManager.Instance?.StopTaggedSfx(gameObject);
     }
 }
