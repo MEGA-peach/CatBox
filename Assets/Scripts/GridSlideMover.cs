@@ -52,7 +52,9 @@ public class GridSlideMover : MonoBehaviour
         if (IsMoving)
             return false;
 
-        Vector3Int currentCell = grid.WorldToCell(transform.position);
+        Vector3Int currentCell = snapper != null
+            ? snapper.GetCurrentCell()
+            : grid.WorldToCell(transform.position);
         Vector3Int slideDirection = NormalizeToCardinal(direction);
 
         Vector3Int firstNextCell = currentCell + slideDirection;
