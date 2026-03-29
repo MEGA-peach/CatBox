@@ -12,6 +12,8 @@ public class SaveData
     public float musicVolume = 1f;
     public float sfxVolume = 1f;
 
+    public bool hasShownLevel1HowToPlay = false;
+
     public SaveData(int totalLevels)
     {
         highestUnlockedLevel = 1;
@@ -29,5 +31,7 @@ public class SaveData
         masterVolume = 1f;
         musicVolume = 1f;
         sfxVolume = 1f;
+
+        hasShownLevel1HowToPlay = false;
     }
 }

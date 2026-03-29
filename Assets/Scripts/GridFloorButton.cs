@@ -18,9 +18,13 @@ public class GridFloorButton : MonoBehaviour
     [SerializeField] private LayerMask occupantLayers;
     [SerializeField] private Vector2 overlapBoxSize = new Vector2(0.8f, 0.8f);
     [SerializeField] private bool pollEveryFrame = true;
+    [SerializeField] private bool useLateUpdateSafeguard = true;
 
     [Header("Targets")]
     [SerializeField] private FloorButtonTarget[] targets;
+
+    [Header("Debug")]
+    [SerializeField] private bool logStateChanges = false;
 
     private bool isPressed;
 
@@ -38,12 +42,36 @@ public class GridFloorButton : MonoBehaviour
         ApplyVisualState(false);
     }
 
+    private void OnEnable()
+    {
+        RefreshPressedState();
+    }
+
     private void Update()
     {
         if (!pollEveryFrame)
             return;
 
         RefreshPressedState();
+    }
+
+    private void LateUpdate()
+    {
+        if (!pollEveryFrame || !useLateUpdateSafeguard)
+            return;
+
+        // Extra safety pass after movement/placement has finished for the frame.
+        RefreshPressedState();
+    }
+
+    private void OnDisable()
+    {
+        ForceRelease();
+    }
+
+    private void OnDestroy()
+    {
+        ForceRelease();
     }
 
     public void RefreshPressedState()
@@ -53,23 +81,39 @@ public class GridFloorButton : MonoBehaviour
         if (pressedNow == isPressed)
             return;
 
-        isPressed = pressedNow;
+        SetPressedState(pressedNow);
+    }
+
+    public void ForceRelease()
+    {
+        if (!isPressed)
+            return;
+
+        SetPressedState(false);
+    }
+
+    private void SetPressedState(bool pressed)
+    {
+        isPressed = pressed;
         ApplyVisualState(isPressed);
+
+        if (logStateChanges)
+            Debug.Log($"[{nameof(GridFloorButton)}] {name} pressed = {isPressed}");
 
         if (isPressed)
         {
-            foreach (FloorButtonTarget target in targets)
+            for (int i = 0; i < targets.Length; i++)
             {
-                if (target != null)
-                    target.OnButtonPressed(this);
+                if (targets[i] != null)
+                    targets[i].OnButtonPressed(this);
             }
         }
         else
         {
-            foreach (FloorButtonTarget target in targets)
+            for (int i = 0; i < targets.Length; i++)
             {
-                if (target != null)
-                    target.OnButtonReleased(this);
+                if (targets[i] != null)
+                    targets[i].OnButtonReleased(this);
             }
         }
     }
@@ -88,9 +132,11 @@ public class GridFloorButton : MonoBehaviour
 
         Transform myRoot = transform.root;
 
-        foreach (Collider2D hit in hits)
+        for (int i = 0; i < hits.Length; i++)
         {
-            if (hit == null)
+            Collider2D hit = hits[i];
+
+            if (hit == null || !hit.gameObject.activeInHierarchy)
                 continue;
 
             if (hit.transform.root == myRoot)
@@ -99,6 +145,7 @@ public class GridFloorButton : MonoBehaviour
             if (ownCollider != null && hit == ownCollider)
                 continue;
 
+            // Ignore dragged cats so they do not press buttons while being moved.
             CatDragAndPlace cat = hit.GetComponentInParent<CatDragAndPlace>();
             if (cat != null && cat.IsDragging)
                 continue;

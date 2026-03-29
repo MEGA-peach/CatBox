@@ -136,6 +136,7 @@ public static class SaveManager
         SaveData newSave = new SaveData(totalLevels);
 
         int copyCount = 0;
+
         if (CurrentSave.completedLevels != null)
         {
             copyCount = Mathf.Min(CurrentSave.completedLevels.Length, totalLevels);
@@ -164,6 +165,13 @@ public static class SaveManager
         }
 
         newSave.highestUnlockedLevel = Mathf.Max(1, CurrentSave.highestUnlockedLevel);
+
+        newSave.masterVolume = CurrentSave.masterVolume;
+        newSave.musicVolume = CurrentSave.musicVolume;
+        newSave.sfxVolume = CurrentSave.sfxVolume;
+
+        newSave.hasShownLevel1HowToPlay = CurrentSave.hasShownLevel1HowToPlay;
+
         CurrentSave = newSave;
         SaveGame();
     }
@@ -216,6 +224,26 @@ public static class SaveManager
             return;
 
         CurrentSave.sfxVolume = Mathf.Clamp01(value);
+        SaveGame();
+    }
+
+    public static bool HasShownLevel1HowToPlay()
+    {
+        if (CurrentSave == null)
+            return false;
+
+        return CurrentSave.hasShownLevel1HowToPlay;
+    }
+
+    public static void SetShownLevel1HowToPlay(bool shown)
+    {
+        if (CurrentSave == null)
+        {
+            Debug.LogWarning("SaveManager: No current save loaded.");
+            return;
+        }
+
+        CurrentSave.hasShownLevel1HowToPlay = shown;
         SaveGame();
     }
 }

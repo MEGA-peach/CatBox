@@ -18,24 +18,19 @@ public class BoxWinSequence : MonoBehaviour
     [SerializeField] private float poofShrinkRate = 2.0f;
     [SerializeField] private float poofFadeRate = 2.0f;
 
-    [Header("Audio")]
-    [SerializeField] private RandomizedAudioSet poofSounds;
-    [SerializeField] private RandomizedAudioSet WinChimeSounds;
-
-    private int lastPoofIndex = -1;
-    private int lastChimeIndex = -1;
-
     [Header("Final Celebration")]
     [SerializeField] private FloatingSpriteEffect heartsEffectPrefab;
     [SerializeField] private Vector3 heartsOffset = new Vector3(0f, 0.1f, 0f);
     [SerializeField] private float heartsEffectDuration = 2.0f;
     [SerializeField] private LevelCompleteMenuUI levelCompleteMenuUI;
+    [SerializeField] private GameCompleteMenuUI gameCompleteMenuUI;
 
     [Header("State")]
     [SerializeField] private bool disableFurtherBoxMovementAfterGoal = true;
 
     [Header("Level Progress")]
     [SerializeField] private int levelNumber = 0; // 0 = auto-detect from scene name
+    [SerializeField] private int finalLevelNumber = 0; // 0 = auto-detect from save length
 
     private bool goalReached;
     private bool catEnteredBox;
@@ -58,6 +53,9 @@ public class BoxWinSequence : MonoBehaviour
 
         if (levelCompleteMenuUI != null)
             levelCompleteMenuUI.Hide();
+
+        if (gameCompleteMenuUI != null)
+            gameCompleteMenuUI.Hide();
 
         ResolveLevelNumber();
     }
@@ -117,8 +115,6 @@ public class BoxWinSequence : MonoBehaviour
             poofInstance.transform.localScale = poofStartScale;
         }
 
-        AudioManager.Instance?.PlaySfx(poofSounds, ref lastPoofIndex);
-
         if (boxSpriteRenderer != null && openBoxSprite != null)
             boxSpriteRenderer.sprite = openBoxSprite;
 
@@ -173,8 +169,6 @@ public class BoxWinSequence : MonoBehaviour
         if (finalSequencePlaying)
             return;
 
-        AudioManager.Instance?.PauseMusic();
-        AudioManager.Instance?.PlaySfx(WinChimeSounds, ref lastChimeIndex);
         StartCoroutine(FinalCelebrationRoutine());
     }
 
@@ -198,10 +192,31 @@ public class BoxWinSequence : MonoBehaviour
         Debug.Log($"[BoxWinSequence] Completing level {levelNumber}");
         SaveManager.CompleteLevel(levelNumber);
 
-        if (levelCompleteMenuUI != null)
-            levelCompleteMenuUI.Show();
+        if (IsFinalLevel())
+        {
+            if (gameCompleteMenuUI != null)
+                gameCompleteMenuUI.Show();
+            else if (levelCompleteMenuUI != null)
+                levelCompleteMenuUI.Show();
+        }
+        else
+        {
+            if (levelCompleteMenuUI != null)
+                levelCompleteMenuUI.Show();
+        }
 
         finalSequencePlaying = false;
+    }
+
+    private bool IsFinalLevel()
+    {
+        if (finalLevelNumber > 0)
+            return levelNumber == finalLevelNumber;
+
+        if (SaveManager.CurrentSave != null && SaveManager.CurrentSave.completedLevels != null)
+            return levelNumber == SaveManager.CurrentSave.completedLevels.Length;
+
+        return false;
     }
 
     private void ResolveLevelNumber()
