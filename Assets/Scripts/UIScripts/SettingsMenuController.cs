@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,13 +8,14 @@ public class SettingsMenuController : MonoBehaviour
     private const string MasterVolumeKey = "settings_master_volume";
     private const string MusicVolumeKey = "settings_music_volume";
     private const string SfxVolumeKey = "settings_sfx_volume";
-    private const string ResolutionIndexKey = "settings_resolution_index";
+    private const string FullscreenKey = "settings_fullscreen";
 
     [Header("References")]
     [SerializeField] private PauseMenuController pauseMenuController;
 
     [Header("Display")]
-    [SerializeField] private TMP_Dropdown resolutionDropdown;
+    [SerializeField] private Toggle fullscreenToggle;
+    [SerializeField] private TMP_Text resolutionLabel;
 
     [Header("Audio")]
     [SerializeField] private Slider masterVolumeSlider;
@@ -26,55 +26,27 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float defaultMasterVolume = 1f;
     [SerializeField, Range(0f, 1f)] private float defaultMusicVolume = 1f;
     [SerializeField, Range(0f, 1f)] private float defaultSfxVolume = 1f;
+    [SerializeField] private bool defaultFullscreen = true;
 
-    [Header("Resolution Options")]
-    [Tooltip("Uses clean integer scale options based on the 480x256 reference resolution.")]
-    [SerializeField] private bool includeFiveXOption = true;
+    [Header("Windowed Mode")]
+    [Tooltip("If enabled, windowed mode will use a slightly smaller size than the desktop so it fits cleanly on screen.")]
+    [SerializeField] private bool useReducedWindowedSize = true;
 
-    private readonly List<Vector2Int> availableResolutions = new List<Vector2Int>();
+    [Tooltip("Amount to subtract from desktop width/height in windowed mode.")]
+    [SerializeField] private Vector2Int windowedPadding = new Vector2Int(160, 120);
+
     private bool suppressCallbacks;
 
     private void Awake()
     {
-        BuildResolutionList();
         HookUpUIEvents();
         LoadSavedSettings();
     }
 
-    private void BuildResolutionList()
-    {
-        availableResolutions.Clear();
-
-        // Pixel-perfect integer scales of 480x256
-        availableResolutions.Add(new Vector2Int(480, 256));   // 1x
-        availableResolutions.Add(new Vector2Int(960, 512));   // 2x
-        availableResolutions.Add(new Vector2Int(1440, 768));  // 3x
-        availableResolutions.Add(new Vector2Int(1920, 1024)); // 4x
-
-        if (includeFiveXOption)
-            availableResolutions.Add(new Vector2Int(2400, 1280)); // 5x
-
-        if (resolutionDropdown == null)
-            return;
-
-        List<string> options = new List<string>();
-
-        for (int i = 0; i < availableResolutions.Count; i++)
-        {
-            Vector2Int res = availableResolutions[i];
-            int scale = i + 1;
-            options.Add($"{res.x} x {res.y} ({scale}x)");
-        }
-
-        resolutionDropdown.ClearOptions();
-        resolutionDropdown.AddOptions(options);
-        resolutionDropdown.RefreshShownValue();
-    }
-
     private void HookUpUIEvents()
     {
-        if (resolutionDropdown != null)
-            resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
+        if (fullscreenToggle != null)
+            fullscreenToggle.onValueChanged.AddListener(OnFullscreenToggled);
 
         if (masterVolumeSlider != null)
             masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
@@ -90,18 +62,14 @@ public class SettingsMenuController : MonoBehaviour
     {
         suppressCallbacks = true;
 
-        int resolutionIndex = GetSavedResolutionIndex();
-        resolutionIndex = Mathf.Clamp(resolutionIndex, 0, Mathf.Max(0, availableResolutions.Count - 1));
+        bool fullscreen = PlayerPrefs.GetInt(FullscreenKey, defaultFullscreen ? 1 : 0) == 1;
 
-        if (resolutionDropdown != null && availableResolutions.Count > 0)
-        {
-            resolutionDropdown.value = resolutionIndex;
-            resolutionDropdown.RefreshShownValue();
-        }
+        if (fullscreenToggle != null)
+            fullscreenToggle.isOn = fullscreen;
 
-        float masterVolume = SaveManager.GetMasterVolume(defaultMasterVolume);
-        float musicVolume = SaveManager.GetMusicVolume(defaultMusicVolume);
-        float sfxVolume = SaveManager.GetSfxVolume(defaultSfxVolume);
+        float masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, defaultMasterVolume);
+        float musicVolume = PlayerPrefs.GetFloat(MusicVolumeKey, defaultMusicVolume);
+        float sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, defaultSfxVolume);
 
         if (masterVolumeSlider != null)
             masterVolumeSlider.value = masterVolume;
@@ -112,10 +80,11 @@ public class SettingsMenuController : MonoBehaviour
         if (sfxVolumeSlider != null)
             sfxVolumeSlider.value = sfxVolume;
 
-        ApplyResolution(resolutionIndex);
+        ApplyFullscreen(fullscreen);
         ApplyMasterVolume(masterVolume);
         ApplyMusicVolume(musicVolume);
         ApplySfxVolume(sfxVolume);
+        RefreshResolutionLabel();
 
         suppressCallbacks = false;
     }
@@ -129,13 +98,8 @@ public class SettingsMenuController : MonoBehaviour
     {
         suppressCallbacks = true;
 
-        int defaultResolutionIndex = GetDefaultResolutionIndex();
-
-        if (resolutionDropdown != null && availableResolutions.Count > 0)
-        {
-            resolutionDropdown.value = defaultResolutionIndex;
-            resolutionDropdown.RefreshShownValue();
-        }
+        if (fullscreenToggle != null)
+            fullscreenToggle.isOn = defaultFullscreen;
 
         if (masterVolumeSlider != null)
             masterVolumeSlider.value = defaultMasterVolume;
@@ -148,24 +112,29 @@ public class SettingsMenuController : MonoBehaviour
 
         suppressCallbacks = false;
 
-        ApplyResolution(defaultResolutionIndex);
+        ApplyFullscreen(defaultFullscreen);
         ApplyMasterVolume(defaultMasterVolume);
         ApplyMusicVolume(defaultMusicVolume);
         ApplySfxVolume(defaultSfxVolume);
 
-        SaveResolutionIndex(defaultResolutionIndex);
-        SaveManager.SetMasterVolume(defaultMasterVolume);
-        SaveManager.SetMusicVolume(defaultMusicVolume);
-        SaveManager.SetSfxVolume(defaultSfxVolume);
+        PlayerPrefs.SetInt(FullscreenKey, defaultFullscreen ? 1 : 0);
+        PlayerPrefs.SetFloat(MasterVolumeKey, defaultMasterVolume);
+        PlayerPrefs.SetFloat(MusicVolumeKey, defaultMusicVolume);
+        PlayerPrefs.SetFloat(SfxVolumeKey, defaultSfxVolume);
+        PlayerPrefs.Save();
+
+        RefreshResolutionLabel();
     }
 
-    private void OnResolutionChanged(int index)
+    private void OnFullscreenToggled(bool isFullscreen)
     {
         if (suppressCallbacks)
             return;
 
-        ApplyResolution(index);
-        SaveResolutionIndex(index);
+        ApplyFullscreen(isFullscreen);
+        PlayerPrefs.SetInt(FullscreenKey, isFullscreen ? 1 : 0);
+        PlayerPrefs.Save();
+        RefreshResolutionLabel();
     }
 
     private void OnMasterVolumeChanged(float value)
@@ -174,7 +143,8 @@ public class SettingsMenuController : MonoBehaviour
             return;
 
         ApplyMasterVolume(value);
-        SaveManager.SetMasterVolume(value);
+        PlayerPrefs.SetFloat(MasterVolumeKey, value);
+        PlayerPrefs.Save();
     }
 
     private void OnMusicVolumeChanged(float value)
@@ -183,7 +153,8 @@ public class SettingsMenuController : MonoBehaviour
             return;
 
         ApplyMusicVolume(value);
-        SaveManager.SetMusicVolume(value);
+        PlayerPrefs.SetFloat(MusicVolumeKey, value);
+        PlayerPrefs.Save();
     }
 
     private void OnSfxVolumeChanged(float value)
@@ -192,18 +163,44 @@ public class SettingsMenuController : MonoBehaviour
             return;
 
         ApplySfxVolume(value);
-        SaveManager.SetSfxVolume(value);
+        PlayerPrefs.SetFloat(SfxVolumeKey, value);
+        PlayerPrefs.Save();
     }
 
-    private void ApplyResolution(int index)
+    private void ApplyFullscreen(bool fullscreen)
     {
-        if (availableResolutions.Count == 0)
+        Resolution desktop = Screen.currentResolution;
+
+        if (fullscreen)
+        {
+            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+            Screen.SetResolution(desktop.width, desktop.height, FullScreenMode.FullScreenWindow);
+        }
+        else
+        {
+            int width = desktop.width;
+            int height = desktop.height;
+
+            if (useReducedWindowedSize)
+            {
+                width = Mathf.Max(1280, desktop.width - windowedPadding.x);
+                height = Mathf.Max(720, desktop.height - windowedPadding.y);
+            }
+
+            Screen.fullScreenMode = FullScreenMode.Windowed;
+            Screen.SetResolution(width, height, FullScreenMode.Windowed);
+        }
+    }
+
+    private void RefreshResolutionLabel()
+    {
+        if (resolutionLabel == null)
             return;
 
-        index = Mathf.Clamp(index, 0, availableResolutions.Count - 1);
-        Vector2Int res = availableResolutions[index];
+        Resolution desktop = Screen.currentResolution;
+        string mode = Screen.fullScreen ? "Fullscreen" : "Windowed";
 
-        Screen.SetResolution(res.x, res.y, Screen.fullScreenMode);
+        resolutionLabel.text = $"UI Reference: 3840 x 2160\nDisplay: {Screen.width} x {Screen.height} ({mode})\nDesktop: {desktop.width} x {desktop.height}";
     }
 
     private void ApplyMasterVolume(float value)
@@ -219,41 +216,5 @@ public class SettingsMenuController : MonoBehaviour
     private void ApplySfxVolume(float value)
     {
         AudioManager.Instance?.SetSfxVolume(value);
-    }
-
-    private int GetSavedResolutionIndex()
-    {
-        if (!PlayerPrefs.HasKey(ResolutionIndexKey))
-            return GetDefaultResolutionIndex();
-
-        return PlayerPrefs.GetInt(ResolutionIndexKey);
-    }
-
-    private void SaveResolutionIndex(int index)
-    {
-        PlayerPrefs.SetInt(ResolutionIndexKey, index);
-        PlayerPrefs.Save();
-    }
-
-    private int GetDefaultResolutionIndex()
-    {
-        if (availableResolutions.Count == 0)
-            return 0;
-
-        int currentWidth = Screen.width;
-        int currentHeight = Screen.height;
-
-        for (int i = 0; i < availableResolutions.Count; i++)
-        {
-            if (availableResolutions[i].x == currentWidth &&
-                availableResolutions[i].y == currentHeight)
-            {
-                return i;
-            }
-        }
-
-        // Default to 4x if available, otherwise highest valid option.
-        int preferredIndex = 3;
-        return Mathf.Clamp(preferredIndex, 0, availableResolutions.Count - 1);
     }
 }

@@ -7,7 +7,9 @@ public class GridCellBlockChecker : MonoBehaviour
     [Header("Tilemap Blocking")]
     [SerializeField] private Tilemap wallTilemap;
     [SerializeField] private Tilemap obstacleTilemap;
-    [SerializeField] private Tilemap movableWallBlockingTilemap;
+
+    [Header("Movable Wall")]
+    [SerializeField] private MovableObstacleTilemap movableWall;
 
     [Header("Object Blocking")]
     [Tooltip("Objects on these layers will make a cell invalid for placement.")]
@@ -34,20 +36,26 @@ public class GridCellBlockChecker : MonoBehaviour
         if (grid == null)
             return false;
 
+        // ------------------------------------------------------------
+        // Fixed tilemap blocking
+        // ------------------------------------------------------------
         if (wallTilemap != null && wallTilemap.HasTile(cell))
             return true;
 
         if (obstacleTilemap != null && obstacleTilemap.HasTile(cell))
             return true;
 
-        if (movableWallBlockingTilemap != null && movableWallBlockingTilemap.HasTile(cell))
-            return true;
-
+        // ------------------------------------------------------------
+        // Open pits are invalid for the cat
+        // ------------------------------------------------------------
         if (ignoredObjectIsCat && specialTileChecker != null && specialTileChecker.IsOpenPitCell(cell))
             return true;
 
         Transform ignoredRoot = ignoredObject != null ? ignoredObject.transform.root : null;
 
+        // ------------------------------------------------------------
+        // BOX RULE USING TAG + LOGICAL CELL
+        // ------------------------------------------------------------
         GameObject[] boxes = GameObject.FindGameObjectsWithTag("Box");
 
         foreach (GameObject boxObject in boxes)
@@ -73,6 +81,23 @@ public class GridCellBlockChecker : MonoBehaviour
             return true;
         }
 
+        // ------------------------------------------------------------
+        // SINGLE MOVABLE WALL AS TRUE GRID OCCUPANT
+        // ------------------------------------------------------------
+        if (movableWall != null && movableWall.gameObject.activeInHierarchy)
+        {
+            if (ignoredRoot == null || movableWall.transform.root != ignoredRoot)
+            {
+                if (movableWall.OccupiesCell(cell))
+                    return true;
+            }
+        }
+
+        // ------------------------------------------------------------
+        // General object blocking
+        // Skip boxes and movable wall here because they are handled above.
+        // Also skip cats that are currently being dragged.
+        // ------------------------------------------------------------
         Vector3 cellCenter = grid.GetCellCenterWorld(cell);
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(
@@ -94,6 +119,13 @@ public class GridCellBlockChecker : MonoBehaviour
                 continue;
 
             if (hit.CompareTag("Box") || hit.GetComponentInParent<BoxWinSequence>() != null)
+                continue;
+
+            if (movableWall != null && hit.GetComponentInParent<MovableObstacleTilemap>() == movableWall)
+                continue;
+
+            CatDragAndPlace cat = hit.GetComponentInParent<CatDragAndPlace>();
+            if (cat != null && cat.IsDragging)
                 continue;
 
             return true;

@@ -99,6 +99,10 @@ public class GridFloorButton : MonoBehaviour
             if (ownCollider != null && hit == ownCollider)
                 continue;
 
+            CatDragAndPlace cat = hit.GetComponentInParent<CatDragAndPlace>();
+            if (cat != null && cat.IsDragging)
+                continue;
+
             return true;
         }
 

@@ -42,6 +42,8 @@ public class CatDragAndPlace : MonoBehaviour
     private bool currentDropBlockedByClosedBox;
     private bool currentDropBlockedByMovableWall;
 
+    public bool IsDragging => dragging;
+
     private Vector3 dragOffset;
     private Vector3Int startCell;
     private Coroutine actionRoutine;
