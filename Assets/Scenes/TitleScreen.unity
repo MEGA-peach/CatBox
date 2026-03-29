@@ -6465,6 +6465,14 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: TitleMenuUI, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 5296215063435805947, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 3840
+      objectReference: {fileID: 0}
+    - target: {fileID: 5296215063435805947, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 2160
+      objectReference: {fileID: 0}
     - target: {fileID: 6208083926525467285, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0

@@ -8656,6 +8656,22 @@ PrefabInstance:
       propertyPath: moveDistanceCells
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 7226962419270123636, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
+      propertyPath: playMusicOnStart
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7226962419270123636, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
+      propertyPath: musicPlaylist.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7226962419270123636, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
+      propertyPath: musicPlaylist.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: ab253d9e1e5ad38468c5e77312b1ffe4, type: 3}
+    - target: {fileID: 7226962419270123636, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
+      propertyPath: musicPlaylist.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: da0058b228f387349aff93b7439cbb49, type: 3}
     - target: {fileID: 7600836689499235274, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
       propertyPath: m_CompositePaths.m_Paths.Array.size
       value: 1
