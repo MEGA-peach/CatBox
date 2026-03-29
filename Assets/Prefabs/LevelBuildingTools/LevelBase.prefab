@@ -11878,6 +11878,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
+      propertyPath: gameCompleteMenuUI
+      value: 
+      objectReference: {fileID: 8518053846057374885}
+    - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
       propertyPath: heartsEffectPrefab
       value: 
       objectReference: {fileID: 7008854802362002656, guid: 486f9c0c26af54f41a4e0fc79d8d5748, type: 3}
@@ -11890,11 +11894,23 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
+      propertyPath: winChimeSounds.clips.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
       propertyPath: WinChimeSounds.clips.Array.data[0]
       value: 
       objectReference: {fileID: 8300000, guid: 7af6e8da3bfe67d4ab7a52783c3e7283, type: 3}
     - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
       propertyPath: WinChimeSounds.clips.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: 4aa2e8aa7ee832f4097d63f416b138e1, type: 3}
+    - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
+      propertyPath: winChimeSounds.clips.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 7af6e8da3bfe67d4ab7a52783c3e7283, type: 3}
+    - target: {fileID: 370087533052421858, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}
+      propertyPath: winChimeSounds.clips.Array.data[1]
       value: 
       objectReference: {fileID: 8300000, guid: 4aa2e8aa7ee832f4097d63f416b138e1, type: 3}
     - target: {fileID: 475753469179752167, guid: d4a7e98c070ceca43938c2ef47171dd0, type: 3}

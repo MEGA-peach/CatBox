@@ -18,6 +18,13 @@ public class BoxWinSequence : MonoBehaviour
     [SerializeField] private float poofShrinkRate = 2.0f;
     [SerializeField] private float poofFadeRate = 2.0f;
 
+    [Header("Audio")]
+    [SerializeField] private RandomizedAudioSet poofSounds;
+    [SerializeField] private RandomizedAudioSet winChimeSounds;
+
+    private int lastPoofIndex = -1;
+    private int lastChimeIndex = -1;
+
     [Header("Final Celebration")]
     [SerializeField] private FloatingSpriteEffect heartsEffectPrefab;
     [SerializeField] private Vector3 heartsOffset = new Vector3(0f, 0.1f, 0f);
@@ -115,6 +122,8 @@ public class BoxWinSequence : MonoBehaviour
             poofInstance.transform.localScale = poofStartScale;
         }
 
+        AudioManager.Instance?.PlaySfx(poofSounds, ref lastPoofIndex);
+
         if (boxSpriteRenderer != null && openBoxSprite != null)
             boxSpriteRenderer.sprite = openBoxSprite;
 
@@ -168,6 +177,9 @@ public class BoxWinSequence : MonoBehaviour
 
         if (finalSequencePlaying)
             return;
+
+        AudioManager.Instance?.PauseMusic();
+        AudioManager.Instance?.PlaySfx(winChimeSounds, ref lastChimeIndex);
 
         StartCoroutine(FinalCelebrationRoutine());
     }

@@ -414,9 +414,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TitleMenuUI, Assembly-CSharp
-        m_MethodName: OnBackToMenuPressed
+      - m_Target: {fileID: 7079464175386216801}
+        m_TargetAssemblyTypeName: FirstTimeLevel1HowToPlayPopup, Assembly-CSharp
+        m_MethodName: HidePopup
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
