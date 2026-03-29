@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Xml.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -31,61 +32,74 @@ public class LevelSelectButton : MonoBehaviour
     }
 
     public void Refresh()
-    {
+    { 
         bool isUnlocked = SaveManager.IsLevelUnlocked(levelNumber);
+
         bool isCompleted = SaveManager.IsLevelCompleted(levelNumber);
 
         if (levelNumberText != null)
+
             levelNumberText.text = levelNumber.ToString();
 
+
         if (button != null)
+
             button.interactable = isUnlocked;
 
+
         if (lockIcon != null)
+
             lockIcon.SetActive(!isUnlocked);
+
 
         if (completionIcon != null)
             completionIcon.SetActive(isCompleted);
 
+
+
         RefreshNewestUnlockedHighlight(isUnlocked, isCompleted);
-    }
+}
 
-    public void OnPressed()
+
+
+public void OnPressed()
+{
+    if (!SaveManager.IsLevelUnlocked(levelNumber))
+        return;
+
+
+
+    if (string.IsNullOrWhiteSpace(sceneName))
     {
-        if (!SaveManager.IsLevelUnlocked(levelNumber))
-            return;
-
-        if (string.IsNullOrWhiteSpace(sceneName))
-        {
-            Debug.LogWarning($"No scene name assigned for level {levelNumber} on {name}.");
-            return;
-        }
-
-        SceneManager.LoadScene(sceneName);
+        Debug.LogWarning($"No scene name assigned for level {levelNumber} on {name}.");
+        return;
     }
 
-    private void RefreshNewestUnlockedHighlight(bool isUnlocked, bool isCompleted)
+    SceneManager.LoadScene(sceneName);
+}
+
+private void RefreshNewestUnlockedHighlight(bool isUnlocked, bool isCompleted)
+{
+    if (newestUnlockedHighlightObject == null)
+        return;
+
+    bool shouldShowHighlight = false;
+
+    if (SaveManager.CurrentSave != null)
     {
-        if (newestUnlockedHighlightObject == null)
-            return;
+        int highestUnlockedLevel = Mathf.Max(1, SaveManager.CurrentSave.highestUnlockedLevel);
 
-        bool shouldShowHighlight = false;
-
-        if (SaveManager.CurrentSave != null)
-        {
-            int highestUnlockedLevel = Mathf.Max(1, SaveManager.CurrentSave.highestUnlockedLevel);
-
-            shouldShowHighlight =
-                isUnlocked &&
-                !isCompleted &&
-                levelNumber == highestUnlockedLevel;
-        }
-
-        newestUnlockedHighlightObject.SetActive(shouldShowHighlight);
-
-        if (shouldShowHighlight && newestUnlockedHighlightImage != null)
-        {
-            newestUnlockedHighlightImage.color = newestUnlockedHighlightColor;
-        }
+        shouldShowHighlight =
+            isUnlocked &&
+            !isCompleted &&
+            levelNumber == highestUnlockedLevel;
     }
+
+    newestUnlockedHighlightObject.SetActive(shouldShowHighlight);
+
+    if (shouldShowHighlight && newestUnlockedHighlightImage != null)
+    {
+        newestUnlockedHighlightImage.color = newestUnlockedHighlightColor;
+    }
+}
 }

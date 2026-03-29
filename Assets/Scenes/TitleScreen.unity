@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 54499631}
   - component: {fileID: 54499635}
   - component: {fileID: 54499634}
+  - component: {fileID: 54499636}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -159,8 +160,8 @@ Camera:
   m_GameObject: {fileID: 54499630}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -177,15 +178,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.012500001
     y: 0
-    width: 1
+    width: 0.975
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 2
+  orthographic size: 2.109375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -229,10 +230,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ComponentVersion: 1
-  m_AssetsPPU: 30
-  m_RefResolutionX: 211
-  m_RefResolutionY: 96
-  m_CropFrame: 0
+  m_AssetsPPU: 32
+  m_RefResolutionX: 234
+  m_RefResolutionY: 132
+  m_CropFrame: 1
   m_GridSnapping: 1
   m_FilterMode: 0
   m_UpscaleRT: 0
@@ -284,6 +285,21 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &54499636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 54499630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 655d43c9a7d507e40805d60b607e8879, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  referenceOrthographicSize: 2.1
+  updateContinuously: 1
+  logDebug: 0
 --- !u!1 &71358967
 GameObject:
   m_ObjectHideFlags: 0
@@ -1114,6 +1130,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 454442438328563796, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -6.500004
+      objectReference: {fileID: 0}
     - target: {fileID: 1274941234606778478, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1184,7 +1204,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2227613014815699066, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3118217750351350422, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_Camera
@@ -1205,6 +1225,10 @@ PrefabInstance:
     - target: {fileID: 3517187432579023427, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3517187432579023427, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -6.500004
       objectReference: {fileID: 0}
     - target: {fileID: 4198223078976525822, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: sfxVolumeSlider
@@ -1277,6 +1301,10 @@ PrefabInstance:
     - target: {fileID: 6637241552338441288, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6637241552338441288, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -6.500004
       objectReference: {fileID: 0}
     - target: {fileID: 6905348340356913299, guid: f89d346495a7aec42b5e8b0e5524896e, type: 3}
       propertyPath: m_IsActive
@@ -3320,7 +3348,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 5.03, y: -22.894999}
+  m_AnchoredPosition: {x: 5.03, y: -26}
   m_SizeDelta: {x: 171.51, y: -74.44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1399867317
@@ -3344,8 +3372,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "- Click and drag to move the cat.\n\n- Place the cat strategically to
-    hit boxes and other items.\n\n- Guide the box to the star goal and place the
-    cat in the box to complete the puzzle!\n\n\t\t\t\tGood Luck!"
+    hit boxes and other items.\n\n-Click the replay button in the top right corner
+    to restart.\n\n- Guide the box to the star goal and place the cat in the box
+    to complete the puzzle!\n\n\t\t\t\tGood Luck!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 17a039968cbeeb440bfed59b391c132c, type: 2}
   m_sharedMaterial: {fileID: -9184921961304718194, guid: 17a039968cbeeb440bfed59b391c132c, type: 2}
@@ -3372,8 +3401,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 3
-  m_fontSizeBase: 3
+  m_fontSize: 2.5
+  m_fontSizeBase: 2.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

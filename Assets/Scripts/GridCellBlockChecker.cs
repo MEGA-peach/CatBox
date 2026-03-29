@@ -7,6 +7,7 @@ public class GridCellBlockChecker : MonoBehaviour
     [Header("Tilemap Blocking")]
     [SerializeField] private Tilemap wallTilemap;
     [SerializeField] private Tilemap obstacleTilemap;
+    [SerializeField] private Tilemap movableWallBlockingTilemap;
 
     [Header("Movable Wall")]
     [SerializeField] private MovableObstacleTilemap movableWall;
@@ -45,6 +46,9 @@ public class GridCellBlockChecker : MonoBehaviour
         if (obstacleTilemap != null && obstacleTilemap.HasTile(cell))
             return true;
 
+        if (movableWallBlockingTilemap != null && movableWallBlockingTilemap.HasTile(cell))
+            return true;
+
         // ------------------------------------------------------------
         // Open pits are invalid for the cat
         // ------------------------------------------------------------
@@ -75,6 +79,7 @@ public class GridCellBlockChecker : MonoBehaviour
             if (boxWinSequence == null)
                 boxWinSequence = boxObject.GetComponentInParent<BoxWinSequence>();
 
+            // Allow the cat to enter an open box.
             if (ignoredObjectIsCat && boxWinSequence != null && boxWinSequence.IsOpenForCat)
                 return false;
 
@@ -82,20 +87,7 @@ public class GridCellBlockChecker : MonoBehaviour
         }
 
         // ------------------------------------------------------------
-        // SINGLE MOVABLE WALL AS TRUE GRID OCCUPANT
-        // ------------------------------------------------------------
-        if (movableWall != null && movableWall.gameObject.activeInHierarchy)
-        {
-            if (ignoredRoot == null || movableWall.transform.root != ignoredRoot)
-            {
-                if (movableWall.OccupiesCell(cell))
-                    return true;
-            }
-        }
-
-        // ------------------------------------------------------------
         // General object blocking
-        // Skip boxes and movable wall here because they are handled above.
         // Also skip cats that are currently being dragged.
         // ------------------------------------------------------------
         Vector3 cellCenter = grid.GetCellCenterWorld(cell);
@@ -119,9 +111,6 @@ public class GridCellBlockChecker : MonoBehaviour
                 continue;
 
             if (hit.CompareTag("Box") || hit.GetComponentInParent<BoxWinSequence>() != null)
-                continue;
-
-            if (movableWall != null && hit.GetComponentInParent<MovableObstacleTilemap>() == movableWall)
                 continue;
 
             CatDragAndPlace cat = hit.GetComponentInParent<CatDragAndPlace>();

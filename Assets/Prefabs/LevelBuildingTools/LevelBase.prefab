@@ -2945,7 +2945,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wallTilemap: {fileID: 8107832104043873929}
   obstacleTilemap: {fileID: 6224413775243419040}
-  movableWall: {fileID: 0}
+  movableWallBlockingTilemap: {fileID: 4002664889448303770}
+  movableWall: {fileID: 6765422438693640757}
   blockingObjectLayers:
     serializedVersion: 2
     m_Bits: 72
@@ -9303,6 +9304,7 @@ GameObject:
   - component: {fileID: 4362700970595535276}
   - component: {fileID: 3550303200726206977}
   - component: {fileID: 265734204042767914}
+  - component: {fileID: 8969944584317351831}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -9335,7 +9337,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -9444,7 +9446,7 @@ MonoBehaviour:
   m_AssetsPPU: 32
   m_RefResolutionX: 480
   m_RefResolutionY: 256
-  m_CropFrame: 0
+  m_CropFrame: 1
   m_GridSnapping: 1
   m_FilterMode: 0
   m_UpscaleRT: 0
@@ -9452,6 +9454,21 @@ MonoBehaviour:
   m_CropFrameX: 0
   m_CropFrameY: 0
   m_StretchFill: 0
+--- !u!114 &8969944584317351831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6987062844604464393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 655d43c9a7d507e40805d60b607e8879, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  referenceOrthographicSize: 4.21875
+  updateContinuously: 1
+  logDebug: 0
 --- !u!1 &7000876545132707486
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -8,6 +9,9 @@ public class MovableObstacleTilemap : FloorButtonTarget
     [Header("References")]
     [SerializeField] private Grid grid;
     [SerializeField] private Tilemap tilemap;
+    [SerializeField] private Tilemap visualTilemap;
+    [SerializeField] private Tilemap logicalBlockingTilemap;
+    [SerializeField] private TileBase logicalBlockTile;
     [SerializeField] private GridCellIndicator blockedCellIndicator;
 
     [Header("Movement")]
@@ -33,13 +37,27 @@ public class MovableObstacleTilemap : FloorButtonTarget
     private Vector3 homeWorldPosition;
     private Coroutine moveRoutine;
     private bool isExtended;
+    private bool isMoving;
+
+    private readonly List<Vector3Int> localVisualCells = new List<Vector3Int>();
+    private readonly HashSet<Vector3Int> currentOccupiedCells = new HashSet<Vector3Int>();
+    private readonly HashSet<Vector3Int> previousWrittenCells = new HashSet<Vector3Int>();
+
+    public bool IsMoving => isMoving;
 
     private void Awake()
     {
         if (tilemap == null)
             tilemap = GetComponent<Tilemap>();
 
+        if (visualTilemap == null)
+            visualTilemap = GetComponent<Tilemap>();
+
         homeWorldPosition = transform.position;
+
+        CacheLocalVisualCells();
+        RefreshCurrentOccupiedCells();
+        RefreshLogicalBlocking();
     }
 
     public override void OnButtonPressed(GridFloorButton button)
@@ -62,24 +80,8 @@ public class MovableObstacleTilemap : FloorButtonTarget
 
     public bool OccupiesCell(Vector3Int cell)
     {
-        if (tilemap == null || grid == null)
-            return false;
-
-        BoundsInt bounds = tilemap.cellBounds;
-
-        foreach (Vector3Int localCell in bounds.allPositionsWithin)
-        {
-            if (!tilemap.HasTile(localCell))
-                continue;
-
-            Vector3 world = tilemap.GetCellCenterWorld(localCell);
-            Vector3Int currentGridCell = grid.WorldToCell(world);
-
-            if (currentGridCell == cell)
-                return true;
-        }
-
-        return false;
+        RefreshCurrentOccupiedCells();
+        return currentOccupiedCells.Contains(cell);
     }
 
     private IEnumerator MoveToStateRoutine(bool targetExtended)
@@ -89,23 +91,37 @@ public class MovableObstacleTilemap : FloorButtonTarget
         if (Vector3.Distance(transform.position, desiredWorld) <= 0.0001f)
         {
             isExtended = targetExtended;
+            RefreshCurrentOccupiedCells();
+            RefreshLogicalBlocking();
             moveRoutine = null;
             yield break;
         }
 
-        if (TryGetBlockingCell(desiredWorld, out Vector3Int blockingCell))
+        HashSet<Vector3Int> targetCells = BuildTargetOccupiedCells(targetExtended);
+
+        if (TryGetBlockingCell(targetCells, out Vector3Int blockingCell))
         {
             if (blockedCellIndicator != null)
                 blockedCellIndicator.FlashCell(blockingCell, blockedIndicatorDuration);
 
             yield return StartCoroutine(BlockedBumpRoutine(desiredWorld));
+
+            RefreshCurrentOccupiedCells();
+            RefreshLogicalBlocking();
             moveRoutine = null;
             yield break;
         }
 
+        isMoving = true;
+
         yield return StartCoroutine(SlideRoutine(desiredWorld));
 
+        isMoving = false;
         isExtended = targetExtended;
+
+        RefreshCurrentOccupiedCells();
+        RefreshLogicalBlocking();
+
         moveRoutine = null;
     }
 
@@ -123,11 +139,21 @@ public class MovableObstacleTilemap : FloorButtonTarget
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
             float curved = slideCurve.Evaluate(t);
+
             transform.position = Vector3.LerpUnclamped(startWorld, targetWorld, curved);
+
+            // Update logical blocking continuously so the blocked cells match
+            // the wall's current position while it moves.
+            RefreshCurrentOccupiedCells();
+            RefreshLogicalBlocking();
+
             yield return null;
         }
 
         transform.position = targetWorld;
+
+        RefreshCurrentOccupiedCells();
+        RefreshLogicalBlocking();
     }
 
     private IEnumerator BlockedBumpRoutine(Vector3 desiredWorld)
@@ -142,10 +168,16 @@ public class MovableObstacleTilemap : FloorButtonTarget
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / blockedBumpOutDuration);
             transform.position = Vector3.Lerp(startWorld, bumpTarget, t);
+
+            RefreshCurrentOccupiedCells();
+            RefreshLogicalBlocking();
+
             yield return null;
         }
 
         transform.position = bumpTarget;
+        RefreshCurrentOccupiedCells();
+        RefreshLogicalBlocking();
 
         elapsed = 0f;
         while (elapsed < blockedBumpReturnDuration)
@@ -153,31 +185,30 @@ public class MovableObstacleTilemap : FloorButtonTarget
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / blockedBumpReturnDuration);
             transform.position = Vector3.Lerp(bumpTarget, startWorld, t);
+
+            RefreshCurrentOccupiedCells();
+            RefreshLogicalBlocking();
+
             yield return null;
         }
 
         transform.position = startWorld;
+
+        RefreshCurrentOccupiedCells();
+        RefreshLogicalBlocking();
     }
 
-    private bool TryGetBlockingCell(Vector3 desiredWorld, out Vector3Int blockingCell)
+    private bool TryGetBlockingCell(HashSet<Vector3Int> targetCells, out Vector3Int blockingCell)
     {
         blockingCell = Vector3Int.zero;
 
-        if (grid == null || tilemap == null)
+        if (grid == null)
             return false;
 
-        Vector3 worldDelta = desiredWorld - transform.position;
-        BoundsInt bounds = tilemap.cellBounds;
         Transform myRoot = transform.root;
 
-        foreach (Vector3Int localCell in bounds.allPositionsWithin)
+        foreach (Vector3Int targetCell in targetCells)
         {
-            if (!tilemap.HasTile(localCell))
-                continue;
-
-            Vector3 currentTileWorld = tilemap.GetCellCenterWorld(localCell);
-            Vector3 targetTileWorld = currentTileWorld + worldDelta;
-            Vector3Int targetCell = grid.WorldToCell(targetTileWorld);
             Vector3 targetCellCenter = grid.GetCellCenterWorld(targetCell);
 
             Collider2D[] hits = Physics2D.OverlapBoxAll(
@@ -192,7 +223,7 @@ public class MovableObstacleTilemap : FloorButtonTarget
 
             foreach (Collider2D hit in hits)
             {
-                if (hit == null)
+                if (hit == null || !hit.gameObject.activeInHierarchy)
                     continue;
 
                 if (hit.transform.root == myRoot)
@@ -208,6 +239,73 @@ public class MovableObstacleTilemap : FloorButtonTarget
         }
 
         return false;
+    }
+
+    private void CacheLocalVisualCells()
+    {
+        localVisualCells.Clear();
+
+        if (visualTilemap == null)
+            return;
+
+        BoundsInt bounds = visualTilemap.cellBounds;
+
+        foreach (Vector3Int localCell in bounds.allPositionsWithin)
+        {
+            if (!visualTilemap.HasTile(localCell))
+                continue;
+
+            localVisualCells.Add(localCell);
+        }
+    }
+
+    private void RefreshCurrentOccupiedCells()
+    {
+        currentOccupiedCells.Clear();
+
+        if (visualTilemap == null || grid == null)
+            return;
+
+        foreach (Vector3Int localCell in localVisualCells)
+        {
+            Vector3 worldCenter = visualTilemap.GetCellCenterWorld(localCell);
+            Vector3Int gridCell = grid.WorldToCell(worldCenter);
+            currentOccupiedCells.Add(gridCell);
+        }
+    }
+
+    private HashSet<Vector3Int> BuildTargetOccupiedCells(bool targetExtended)
+    {
+        HashSet<Vector3Int> result = new HashSet<Vector3Int>();
+
+        RefreshCurrentOccupiedCells();
+
+        Vector3Int offset = NormalizeToCardinal(moveDirection) * moveDistanceCells;
+
+        if (!targetExtended)
+            offset *= -1;
+
+        foreach (Vector3Int currentCell in currentOccupiedCells)
+            result.Add(currentCell + offset);
+
+        return result;
+    }
+
+    private void RefreshLogicalBlocking()
+    {
+        if (logicalBlockingTilemap == null || logicalBlockTile == null)
+            return;
+
+        foreach (Vector3Int oldCell in previousWrittenCells)
+            logicalBlockingTilemap.SetTile(oldCell, null);
+
+        previousWrittenCells.Clear();
+
+        foreach (Vector3Int cell in currentOccupiedCells)
+        {
+            logicalBlockingTilemap.SetTile(cell, logicalBlockTile);
+            previousWrittenCells.Add(cell);
+        }
     }
 
     private Vector3 GetWorldPositionForState(bool extended)
