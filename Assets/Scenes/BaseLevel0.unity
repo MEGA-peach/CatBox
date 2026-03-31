@@ -130,6 +130,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1485676551476531983, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
+      propertyPath: fullscreenToggle
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 4602302875879294891, guid: 6ff92f796dbb3f540b8d68256ee368ae, type: 3}
       propertyPath: m_Name
       value: LevelBase
